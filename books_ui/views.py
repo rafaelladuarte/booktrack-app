@@ -180,4 +180,72 @@ def book_detail_view(request, book_id):
     if not book:
         return render(request, 'components/empty_state.html') # fallback
         
-    return render(request, 'books/detail.html', {'book': book})
+    # Buscar opções para os formulários de edição
+    options = {}
+    headers = get_headers(request)
+    try:
+        options['categories'] = httpx.get(f"{API_URL}/categories", headers=headers).json().get('data', [])
+        options['authors'] = httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', [])
+        options['formats'] = httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', [])
+        options['publishers'] = httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', [])
+        options['collections'] = httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', [])
+        options['statuses'] = httpx.get(f"{API_URL}/reading_status", headers=headers).json().get('data', [])
+        options['tags'] = httpx.get(f"{API_URL}/tags", headers=headers).json().get('data', [])
+    except Exception:
+        pass
+        
+    return render(request, 'books/detail.html', {'book': book, 'options': options})
+
+def edit_book_view(request, book_id):
+    if request.method == 'POST':
+        headers = get_headers(request)
+        data = {}
+        # Mapeamento dos campos permitidos
+        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url']
+        for field in fields:
+            val = request.POST.get(field)
+            if val:
+                if field in ['original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id']:
+                    data[field] = int(val)
+                else:
+                    data[field] = val
+                    
+        try:
+            resp = httpx.put(f"{API_URL}/books/{book_id}", json=data, headers=headers)
+            if resp.status_code == 200:
+                messages.success(request, "Livro atualizado com sucesso!")
+            else:
+                messages.error(request, "Erro ao atualizar livro.")
+        except Exception:
+            messages.error(request, "Erro de comunicação com servidor.")
+            
+    return redirect('book_detail', book_id=book_id)
+
+def edit_reading_view(request, book_id):
+    if request.method == 'POST':
+        headers = get_headers(request)
+        data = {}
+        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date']
+        for field in fields:
+            val = request.POST.get(field)
+            if val:
+                if field in ['status_id', 'pages_read']:
+                    data[field] = int(val)
+                else:
+                    data[field] = val
+                    
+        # Múltiplas tags
+        tag_ids = request.POST.getlist('tag_ids')
+        if tag_ids:
+            data['tag_ids'] = [int(tid) for tid in tag_ids]
+            
+        try:
+            resp = httpx.put(f"{API_URL}/readings/{book_id}", json=data, headers=headers)
+            if resp.status_code == 200:
+                messages.success(request, "Leitura atualizada com sucesso!")
+            else:
+                messages.error(request, "Erro ao atualizar leitura.")
+        except Exception:
+            messages.error(request, "Erro de comunicação com servidor.")
+            
+    return redirect('book_detail', book_id=book_id)
