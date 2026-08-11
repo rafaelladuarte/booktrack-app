@@ -11,25 +11,28 @@
 <!-- Barra de Filtros -->
 <form method="get" action="{% url 'library' %}" class="filter-bar" id="filter-form">
     <div class="filter-group">
-        <label class="filter-label" for="filter-category">Categoria</label>
-        <select name="category_id" id="filter-category" class="filter-select" onchange="this.form.submit()">
-            <option value="">Todas</option>
+        <label class="filter-label" for="filter-grupo">Grupo</label>
+        <select name="grupo_id" id="filter-grupo" class="filter-select" onchange="updateCategorias()">
+            <option value="">Todos</option>
             {% for group in category_tree %}
-                <optgroup label="{{ group.grupo.name }}">
-                    {% for genero_entry in group.generos %}
-                        <option value="{{ genero_entry.genero.id }}"
-                            {% if active_filters.category_id == genero_entry.genero.id|stringformat:"d" %}selected{% endif %}>
-                            {{ genero_entry.genero.name }}
-                        </option>
-                        {% for sub in genero_entry.subgeneros %}
-                            <option value="{{ sub.id }}"
-                                {% if active_filters.category_id == sub.id|stringformat:"d" %}selected{% endif %}>
-                                &nbsp;&nbsp;↳ {{ sub.name }}
-                            </option>
-                        {% endfor %}
-                    {% endfor %}
-                </optgroup>
+                <option value="{{ group.grupo.id }}" {% if active_filters.grupo_id == group.grupo.id|stringformat:"d" %}selected{% endif %}>
+                    {{ group.grupo.name }}
+                </option>
             {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-categoria">Categoria</label>
+        <select name="categoria_id" id="filter-categoria" class="filter-select" onchange="updateSubcategorias()" {% if not active_filters.grupo_id %}disabled{% endif %}>
+            <option value="">Todos</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-subcategoria">Subcategoria</label>
+        <select name="subcategoria_id" id="filter-subcategoria" class="filter-select" onchange="this.form.submit()" {% if not active_filters.categoria_id %}disabled{% endif %}>
+            <option value="">Todos</option>
         </select>
     </div>
 
@@ -57,9 +60,34 @@
         </select>
     </div>
 
-    {% if active_filters %}
-        <a href="{% url 'library' %}" class="filter-clear" id="filter-clear-btn">Limpar filtros</a>
-    {% endif %}
+    <div class="filter-group">
+        <label class="filter-label" for="filter-author-country">País do Autor</label>
+        <select name="author_country" id="filter-author-country" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for country in countries %}
+                <option value="{{ country }}" {% if active_filters.author_country == country %}selected{% endif %}>
+                    {{ country }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-author-gender">Gênero</label>
+        <select name="author_gender" id="filter-author-gender" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            <option value="F" {% if active_filters.author_gender == 'F' %}selected{% endif %}>Feminino</option>
+            <option value="M" {% if active_filters.author_gender == 'M' %}selected{% endif %}>Masculino</option>
+            <option value="O" {% if active_filters.author_gender == 'O' %}selected{% endif %}>Outros / Não Informado</option>
+        </select>
+    </div>
+    
+    <div style="align-self: flex-end; margin-bottom: 0.5rem; margin-left: auto; display: flex; gap: 10px;">
+        <button type="submit" class="filter-clear" style="background-color: var(--primary-color); color: var(--background-dark); border: none; cursor: pointer;">Buscar</button>
+        {% if active_filters %}
+            <a href="{% url 'library' %}" class="filter-clear" id="filter-clear-btn">Limpar filtros</a>
+        {% endif %}
+    </div>
 </form>
 
 <div class="book-grid">
@@ -71,4 +99,84 @@
         {% include 'components/empty_state.html' %}
     {% endif %}
 </div>
+
+<script>
+    const categoryTree = {{ category_tree_json|safe|default:'[]' }};
+    const activeCategoriaId = '{{ active_filters.categoria_id|default:"" }}';
+    const activeSubcategoriaId = '{{ active_filters.subcategoria_id|default:"" }}';
+
+    function updateCategorias() {
+        const grupoId = document.getElementById('filter-grupo').value;
+        const categoriaSelect = document.getElementById('filter-categoria');
+        const subcategoriaSelect = document.getElementById('filter-subcategoria');
+
+        // Reset
+        categoriaSelect.innerHTML = '<option value="">Todos</option>';
+        subcategoriaSelect.innerHTML = '<option value="">Todos</option>';
+        
+        if (!grupoId) {
+            categoriaSelect.disabled = true;
+            subcategoriaSelect.disabled = true;
+            return;
+        }
+
+        categoriaSelect.disabled = false;
+        subcategoriaSelect.disabled = true;
+
+        const group = categoryTree.find(g => String(g.grupo.id) === String(grupoId));
+        if (group && group.categorias) {
+            group.categorias.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.categoria.id;
+                opt.textContent = cat.categoria.name;
+                if (String(cat.categoria.id) === activeCategoriaId) {
+                    opt.selected = true;
+                }
+                categoriaSelect.appendChild(opt);
+            });
+        }
+        
+        if (activeCategoriaId) {
+            updateSubcategorias();
+        }
+    }
+
+    function updateSubcategorias() {
+        const grupoId = document.getElementById('filter-grupo').value;
+        const categoriaId = document.getElementById('filter-categoria').value;
+        const subcategoriaSelect = document.getElementById('filter-subcategoria');
+
+        subcategoriaSelect.innerHTML = '<option value="">Todos</option>';
+
+        if (!categoriaId) {
+            subcategoriaSelect.disabled = true;
+            return;
+        }
+
+        subcategoriaSelect.disabled = false;
+
+        const group = categoryTree.find(g => String(g.grupo.id) === String(grupoId));
+        if (group) {
+            const categoria = group.categorias.find(g => String(g.categoria.id) === String(categoriaId));
+            if (categoria && categoria.subcategorias) {
+                categoria.subcategorias.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub.id;
+                    opt.textContent = sub.name;
+                    if (String(sub.id) === activeSubcategoriaId) {
+                        opt.selected = true;
+                    }
+                    subcategoriaSelect.appendChild(opt);
+                });
+            }
+        }
+    }
+
+    // Initialize on load if there's an active group
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('filter-grupo').value) {
+            updateCategorias();
+        }
+    });
+</script>
 {% endblock %}

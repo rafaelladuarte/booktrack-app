@@ -66,16 +66,67 @@
         <div class="detail-author">{% if book.author %}{{ book.author.name }}{% else %}Autor desconhecido{% endif %}</div>
         
         <div class="detail-meta">
-            {% if book.pages %}
-            <div class="meta-badge">{{ book.pages }} páginas</div>
+            {% if book.total_pages %}
+            <div class="meta-badge">{{ book.total_pages }} páginas</div>
             {% endif %}
-            {% if book.publication_year %}
-            <div class="meta-badge">Publicado em {{ book.publication_year }}</div>
+            {% if book.original_publication_year %}
+            <div class="meta-badge">Publicado em {{ book.original_publication_year }}</div>
+            {% endif %}
+            {% if book.publisher %}
+            <div class="meta-badge">Editora: {{ book.publisher.name }}</div>
+            {% endif %}
+            {% if book.format %}
+            <div class="meta-badge">Formato: {{ book.format.name }}</div>
+            {% endif %}
+            {% if book.collection %}
+            <div class="meta-badge">Coleção: {{ book.collection.name }}</div>
+            {% endif %}
+            {% if book.category %}
+            <div class="meta-badge">Categoria: {{ book.category.name }}</div>
             {% endif %}
         </div>
         
-        <div style="margin-top: 20px; line-height: 1.6; color: var(--text-secondary);">
-            {{ book.description|default:"Nenhuma descrição disponível." }}
+        <!-- Histórico de Leituras -->
+        <div style="margin-top: 30px;">
+            <h3>Histórico de Leitura</h3>
+            {% if book.readings and book.readings|length > 0 %}
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                {% for reading in book.readings %}
+                    <div style="border: 1px solid var(--border); padding: 15px; border-radius: var(--radius-lg); background-color: var(--bg-card);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>Status: {{ reading.status.name|default:"Desconhecido" }}</strong>
+                            {% if reading.start_date or reading.end_date %}
+                                <span style="font-size: 0.9em; color: var(--text-secondary);">
+                                    {{ reading.start_date|default:"?" }} a {{ reading.end_date|default:"?" }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if reading.pages_read %}
+                        <div style="margin-bottom: 10px; font-size: 0.95em;">
+                            Páginas lidas: {{ reading.pages_read }}
+                        </div>
+                        {% endif %}
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 5px;">
+                            {% for tag in reading.tags %}
+                                <span style="background-color: var(--primary-color); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;">
+                                    #{{ tag }}
+                                </span>
+                            {% endfor %}
+                            
+                            {% for shelf in reading.shelves %}
+                                <span style="background-color: var(--text-secondary); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;">
+                                    📚 {{ shelf }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary); margin-top: 10px;">Nenhum registro de leitura encontrado.</p>
+            {% endif %}
         </div>
     </div>
 </div>

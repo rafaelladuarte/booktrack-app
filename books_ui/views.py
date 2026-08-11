@@ -1,4 +1,5 @@
 import httpx
+import json
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
@@ -62,28 +63,51 @@ def library_view(request):
         status_resp = httpx.get(f"{API_URL}/reading_status", headers=headers)
         if status_resp.status_code == 200:
             statuses = status_resp.json().get('data', [])
+
+        country_resp = httpx.get(f"{API_URL}/authors/countries", headers=headers)
+        if country_resp.status_code == 200:
+            countries = country_resp.json().get('data', [])
+        else:
+            countries = []
     except httpx.RequestError:
+        countries = []
         pass
 
     # Montar árvore de categorias para o dropdown hierárquico
     category_tree = []
     grupos = [c for c in categories if c.get('parent_id') is None]
     for grupo in sorted(grupos, key=lambda x: x['name']):
-        group_entry = {'grupo': grupo, 'generos': []}
-        generos = [c for c in categories if c.get('parent_id') == grupo['id']]
-        for genero in sorted(generos, key=lambda x: x['name']):
-            genero_entry = {'genero': genero, 'subgeneros': []}
-            subgeneros = [c for c in categories if c.get('parent_id') == genero['id']]
-            genero_entry['subgeneros'] = sorted(subgeneros, key=lambda x: x['name'])
-            group_entry['generos'].append(genero_entry)
+        group_entry = {'grupo': grupo, 'categorias': []}
+        categorias = [c for c in categories if c.get('parent_id') == grupo['id']]
+        for categoria in sorted(categorias, key=lambda x: x['name']):
+            categoria_entry = {'categoria': categoria, 'subcategorias': []}
+            subcategorias = [c for c in categories if c.get('parent_id') == categoria['id']]
+            categoria_entry['subcategorias'] = sorted(subcategorias, key=lambda x: x['name'])
+            group_entry['categorias'].append(categoria_entry)
         category_tree.append(group_entry)
 
     # Construir query params a partir dos filtros selecionados
     params = {}
-    for key in ('category_id', 'tag_id', 'status_id'):
+    for key in ('tag_id', 'status_id', 'author_country', 'author_gender'):
         value = request.GET.get(key)
         if value:
             params[key] = value
+
+    grupo_id = request.GET.get('grupo_id')
+    categoria_id = request.GET.get('categoria_id')
+    subcategoria_id = request.GET.get('subcategoria_id')
+    
+    if subcategoria_id:
+        params['category_id'] = subcategoria_id
+    elif categoria_id:
+        params['category_id'] = categoria_id
+    elif grupo_id:
+        params['category_id'] = grupo_id
+    
+    active_filters = params.copy()
+    if grupo_id: active_filters['grupo_id'] = grupo_id
+    if categoria_id: active_filters['categoria_id'] = categoria_id
+    if subcategoria_id: active_filters['subcategoria_id'] = subcategoria_id
 
     try:
         response = httpx.get(f"{API_URL}/books", headers=headers, params=params)
@@ -98,9 +122,11 @@ def library_view(request):
     return render(request, 'books/library.html', {
         'books': books,
         'category_tree': category_tree,
+        'category_tree_json': json.dumps(category_tree),
         'tags': tags,
         'statuses': statuses,
-        'active_filters': params,
+        'countries': countries,
+        'active_filters': active_filters,
     })
 
 def book_detail_view(request, book_id):
