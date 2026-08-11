@@ -241,11 +241,31 @@ def edit_reading_view(request, book_id):
             
         try:
             resp = httpx.put(f"{API_URL}/readings/{book_id}", json=data, headers=headers)
-            if resp.status_code == 200:
+            
+            if resp.status_code == 404:
+                # Se a leitura não existir (404), vamos criá-la
+                create_data = data.copy()
+                create_data['book_id'] = book_id
+                
+                # ReadingCreate não possui tag_ids, precisamos remover para o POST
+                if 'tag_ids' in create_data:
+                    del create_data['tag_ids']
+                    
+                post_resp = httpx.post(f"{API_URL}/readings", json=create_data, headers=headers)
+                
+                if post_resp.status_code in [200, 201]:
+                    if tag_ids:
+                        # Se criou com sucesso, fazemos um PUT apenas para setar as tags
+                        httpx.put(f"{API_URL}/readings/{book_id}", json={'tag_ids': data['tag_ids']}, headers=headers)
+                    messages.success(request, "Leitura criada e atualizada com sucesso!")
+                else:
+                    messages.error(request, f"Erro ao criar leitura: {post_resp.text}")
+                    
+            elif resp.status_code == 200:
                 messages.success(request, "Leitura atualizada com sucesso!")
             else:
-                messages.error(request, "Erro ao atualizar leitura.")
-        except Exception:
-            messages.error(request, "Erro de comunicação com servidor.")
+                messages.error(request, f"Erro ao atualizar leitura: {resp.text}")
+        except Exception as e:
+            messages.error(request, f"Erro de comunicação com servidor: {e}")
             
     return redirect('book_detail', book_id=book_id)
