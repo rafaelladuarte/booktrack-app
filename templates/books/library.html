@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="section-header">
+    <div style="display: flex; align-items: baseline;">
+        <h1 class="section-title">Minha Biblioteca</h1>
+        <span class="item-count">{{ books|length }} livros</span>
+    </div>
+</div>
+
+<!-- Barra de Filtros -->
+<form method="get" action="{% url 'library' %}" class="filter-bar" id="filter-form">
+    <div class="filter-group">
+        <label class="filter-label" for="filter-category">Categoria</label>
+        <select name="category_id" id="filter-category" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for group in category_tree %}
+                <optgroup label="{{ group.grupo.name }}">
+                    {% for genero_entry in group.generos %}
+                        <option value="{{ genero_entry.genero.id }}"
+                            {% if active_filters.category_id == genero_entry.genero.id|stringformat:"d" %}selected{% endif %}>
+                            {{ genero_entry.genero.name }}
+                        </option>
+                        {% for sub in genero_entry.subgeneros %}
+                            <option value="{{ sub.id }}"
+                                {% if active_filters.category_id == sub.id|stringformat:"d" %}selected{% endif %}>
+                                &nbsp;&nbsp;↳ {{ sub.name }}
+                            </option>
+                        {% endfor %}
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-tag">Tag</label>
+        <select name="tag_id" id="filter-tag" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for tag in tags %}
+                <option value="{{ tag.id }}" {% if active_filters.tag_id == tag.id|stringformat:"d" %}selected{% endif %}>
+                    {{ tag.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-status">Status</label>
+        <select name="status_id" id="filter-status" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for status in statuses %}
+                <option value="{{ status.id }}" {% if active_filters.status_id == status.id|stringformat:"d" %}selected{% endif %}>
+                    {{ status.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if active_filters %}
+        <a href="{% url 'library' %}" class="filter-clear" id="filter-clear-btn">Limpar filtros</a>
+    {% endif %}
+</form>
+
+<div class="book-grid">
+    {% if books %}
+        {% for book in books %}
+            {% include 'components/book_card.html' with book=book %}
+        {% endfor %}
+    {% else %}
+        {% include 'components/empty_state.html' %}
+    {% endif %}
+</div>
+{% endblock %}

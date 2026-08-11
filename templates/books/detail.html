@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+.detail-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+}
+.detail-cover {
+    width: 300px;
+    flex-shrink: 0;
+}
+.detail-cover img {
+    width: 100%;
+    aspect-ratio: var(--cover-aspect-ratio);
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-main);
+}
+.detail-info {
+    flex: 1;
+}
+.detail-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.detail-author {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+.detail-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.meta-badge {
+    background: var(--bg-card);
+    padding: 8px 16px;
+    border-radius: var(--radius-xl);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+</style>
+
+<div class="section-header">
+    <a href="{% url 'library' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 14px;">← Voltar para Biblioteca</a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-cover">
+        {% if book.cover_url %}
+            <img src="{{ book.cover_url }}" alt="{{ book.title }}">
+        {% else %}
+            <div class="cover-fallback" style="height: 400px; border-radius: var(--radius-lg);">
+                <span class="cover-fallback-title">{{ book.title }}</span>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="detail-info">
+        <h1 class="detail-title">{{ book.title }}</h1>
+        <div class="detail-author">{% if book.author %}{{ book.author.name }}{% else %}Autor desconhecido{% endif %}</div>
+        
+        <div class="detail-meta">
+            {% if book.pages %}
+            <div class="meta-badge">{{ book.pages }} páginas</div>
+            {% endif %}
+            {% if book.publication_year %}
+            <div class="meta-badge">Publicado em {{ book.publication_year }}</div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 20px; line-height: 1.6; color: var(--text-secondary);">
+            {{ book.description|default:"Nenhuma descrição disponível." }}
+        </div>
+    </div>
+</div>
+{% endblock %}
