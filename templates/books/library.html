@@ -2,17 +2,35 @@
 
 {% block content %}
 <div class="section-header">
-    <div style="display: flex; align-items: baseline;">
-        <h1 class="section-title">Minha Biblioteca</h1>
-        <span class="item-count">{{ books|length }} livros</span>
+    <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
+        <div style="display: flex; align-items: baseline;">
+            <h1 class="section-title">Minha Biblioteca</h1>
+            <span class="item-count">{{ books|length }} livros</span>
+        </div>
     </div>
 </div>
 
+<!-- Active Filter Chips -->
+{% if active_chips %}
+<div class="active-chips-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+    {% for chip in active_chips %}
+    <span class="filter-chip">
+        <span style="opacity: 0.7; font-weight: 500;">{{ chip.label }}:</span> {{ chip.value }}
+        <button class="filter-chip-remove" onclick="removeFilter('{{ chip.key }}')" aria-label="Remover {{ chip.label }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </span>
+    {% endfor %}
+    <a href="{% url 'library' %}" class="filter-clear-all" style="font-size: 12px; margin-left: 8px; color: var(--text-muted); text-decoration: underline; display: flex; align-items: center;">Limpar todos</a>
+</div>
+{% endif %}
+
 <!-- Barra de Filtros -->
-<form method="get" action="{% url 'library' %}" class="filter-bar" id="filter-form">
+<div class="filter-panel-wrapper" id="filter-panel-wrapper" style="display: block;">
+<form method="get" action="{% url 'library' %}" class="filter-bar filter-panel" id="filter-form">
     <div class="filter-group">
         <label class="filter-label" for="filter-grupo">Grupo</label>
-        <select name="grupo_id" id="filter-grupo" class="filter-select" onchange="updateCategorias()">
+        <select name="grupo_id" id="filter-grupo" class="filter-select" onchange="this.form.submit()">
             <option value="">Todos</option>
             {% for group in category_tree %}
                 <option value="{{ group.grupo.id }}" {% if active_filters.grupo_id == group.grupo.id|stringformat:"d" %}selected{% endif %}>
@@ -24,7 +42,7 @@
 
     <div class="filter-group">
         <label class="filter-label" for="filter-categoria">Categoria</label>
-        <select name="categoria_id" id="filter-categoria" class="filter-select" onchange="updateSubcategorias()" {% if not active_filters.grupo_id %}disabled{% endif %}>
+        <select name="categoria_id" id="filter-categoria" class="filter-select" onchange="this.form.submit()" {% if not active_filters.grupo_id %}disabled{% endif %}>
             <option value="">Todos</option>
         </select>
     </div>
@@ -82,13 +100,8 @@
         </select>
     </div>
     
-    <div style="align-self: flex-end; margin-bottom: 0.5rem; margin-left: auto; display: flex; gap: 10px;">
-        <button type="submit" class="filter-clear" style="background-color: var(--primary-color); color: var(--background-dark); border: none; cursor: pointer;">Buscar</button>
-        {% if active_filters %}
-            <a href="{% url 'library' %}" class="filter-clear" id="filter-clear-btn">Limpar filtros</a>
-        {% endif %}
-    </div>
 </form>
+</div>
 
 <div class="book-grid">
     {% if books %}
@@ -178,5 +191,23 @@
             updateCategorias();
         }
     });
+
+    function removeFilter(keyToRemove) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete(keyToRemove);
+        
+        // Regras especiais: 
+        // Se remover o grupo, deve remover categoria e subcategoria
+        if (keyToRemove === 'grupo_id') {
+            urlParams.delete('categoria_id');
+            urlParams.delete('subcategoria_id');
+        }
+        // Se remover a categoria, deve remover a subcategoria
+        if (keyToRemove === 'categoria_id') {
+            urlParams.delete('subcategoria_id');
+        }
+
+        window.location.search = urlParams.toString();
+    }
 </script>
 {% endblock %}

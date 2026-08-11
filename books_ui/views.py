@@ -109,6 +109,37 @@ def library_view(request):
     if categoria_id: active_filters['categoria_id'] = categoria_id
     if subcategoria_id: active_filters['subcategoria_id'] = subcategoria_id
 
+    # Construir active_chips para UI
+    active_chips = []
+    
+    if grupo_id:
+        name = next((c['name'] for c in categories if str(c['id']) == str(grupo_id)), grupo_id)
+        active_chips.append({'key': 'grupo_id', 'label': 'Grupo', 'value': name})
+    
+    if categoria_id:
+        name = next((c['name'] for c in categories if str(c['id']) == str(categoria_id)), categoria_id)
+        active_chips.append({'key': 'categoria_id', 'label': 'Categoria', 'value': name})
+        
+    if subcategoria_id:
+        name = next((c['name'] for c in categories if str(c['id']) == str(subcategoria_id)), subcategoria_id)
+        active_chips.append({'key': 'subcategoria_id', 'label': 'Subcategoria', 'value': name})
+        
+    if active_filters.get('tag_id'):
+        name = next((t['name'] for t in tags if str(t['id']) == str(active_filters['tag_id'])), active_filters['tag_id'])
+        active_chips.append({'key': 'tag_id', 'label': 'Tag', 'value': name})
+
+    if active_filters.get('status_id'):
+        name = next((s['name'] for s in statuses if str(s['id']) == str(active_filters['status_id'])), active_filters['status_id'])
+        active_chips.append({'key': 'status_id', 'label': 'Status', 'value': name})
+
+    if active_filters.get('author_country'):
+        active_chips.append({'key': 'author_country', 'label': 'País do Autor', 'value': active_filters['author_country']})
+        
+    if active_filters.get('author_gender'):
+        g = active_filters['author_gender']
+        label = "Feminino" if g == 'F' else ("Masculino" if g == 'M' else "Outros")
+        active_chips.append({'key': 'author_gender', 'label': 'Gênero do Autor', 'value': label})
+
     try:
         response = httpx.get(f"{API_URL}/books", headers=headers, params=params)
         if response.status_code == 401:
@@ -127,6 +158,7 @@ def library_view(request):
         'statuses': statuses,
         'countries': countries,
         'active_filters': active_filters,
+        'active_chips': active_chips,
     })
 
 def book_detail_view(request, book_id):
