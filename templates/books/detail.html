@@ -174,6 +174,13 @@
             {% endif %}
         </div>
         
+        {% if book.synopsis %}
+        <div style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 10px;">Sinopse</h3>
+            <p style="color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;">{{ book.synopsis }}</p>
+        </div>
+        {% endif %}
+        
         <!-- Histórico de Leituras -->
         <div style="margin-top: 30px;">
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -196,6 +203,13 @@
                         {% if reading.pages_read %}
                         <div style="margin-bottom: 10px; font-size: 0.95em;">
                             Páginas lidas: {{ reading.pages_read }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if reading.review %}
+                        <div style="margin-top: 10px; margin-bottom: 15px; padding: 12px; background: var(--background-dark); border-radius: var(--radius-md); border-left: 4px solid var(--accent);">
+                            <strong>Resenha:</strong>
+                            <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.95em; white-space: pre-wrap; line-height: 1.5;">{{ reading.review }}</p>
                         </div>
                         {% endif %}
 
@@ -236,6 +250,10 @@
             <div class="form-group">
                 <label>URL da Capa</label>
                 <input type="url" name="cover_url" value="{{ book.cover_url|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label>Sinopse</label>
+                <textarea name="synopsis" rows="4" style="background: var(--background-dark); border: 1px solid var(--border); color: var(--text-primary); padding: 10px; border-radius: var(--radius-md); font-family: inherit; resize: vertical;">{{ book.synopsis|default:'' }}</textarea>
             </div>
             <div class="form-group">
                 <label>Páginas</label>
@@ -328,6 +346,10 @@
             <div class="form-group">
                 <label>Data de Início</label>
                 <input type="date" name="start_date" value="{% if active_reading and active_reading.start_date %}{{ active_reading.start_date }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Resenha / Crítica</label>
+                <textarea name="review" rows="4" style="background: var(--background-dark); border: 1px solid var(--border); color: var(--text-primary); padding: 10px; border-radius: var(--radius-md); font-family: inherit; resize: vertical;">{{ active_reading.review|default:'' }}</textarea>
             </div>
             <div class="form-group">
                 <label>Tags Associadas</label>

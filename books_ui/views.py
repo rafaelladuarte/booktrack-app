@@ -215,7 +215,7 @@ def edit_book_view(request, book_id):
         headers = get_headers(request)
         data = {}
         # Mapeamento dos campos permitidos
-        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url']
+        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url', 'synopsis']
         for field in fields:
             val = request.POST.get(field)
             if val:
@@ -239,7 +239,7 @@ def edit_reading_view(request, book_id):
     if request.method == 'POST':
         headers = get_headers(request)
         data = {}
-        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date']
+        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date', 'review']
         for field in fields:
             val = request.POST.get(field)
             if val:
@@ -288,7 +288,7 @@ def create_book_view(request):
     if request.method == 'POST':
         headers = get_headers(request)
         data = {}
-        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url']
+        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url', 'synopsis']
         for field in fields:
             val = request.POST.get(field)
             if val:
