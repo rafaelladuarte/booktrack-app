@@ -147,8 +147,8 @@
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <h1 class="detail-title">{{ book.title }}</h1>
             <div>
-                <button class="btn-edit" onclick="openModal('modal-edit-book')">✏️ Editar Livro</button>
-                <button class="btn-edit" style="color: var(--danger-color, #ff4d4d); border-color: var(--danger-color, #ff4d4d);" onclick="openModal('modal-delete-book')">🗑️ Excluir Livro</button>
+                <button class="btn-edit" style="display: inline-flex; align-items: center; gap: 6px;" onclick="openModal('modal-edit-book')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> Editar Livro</button>
+                <button class="btn-edit" style="color: var(--danger-color, #ff4d4d); border-color: var(--danger-color, #ff4d4d); display: inline-flex; align-items: center; gap: 6px;" onclick="openModal('modal-delete-book')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg> Excluir Livro</button>
             </div>
         </div>
         <div class="detail-author">{% if book.author %}{{ book.author.name }}{% else %}Autor desconhecido{% endif %}</div>
@@ -185,7 +185,7 @@
         <div style="margin-top: 30px;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <h3 style="margin: 0;">Histórico de Leitura</h3>
-                <button class="btn-edit" onclick="openModal('modal-edit-reading')">📖 Atualizar Leitura</button>
+                <button class="btn-edit" style="display: inline-flex; align-items: center; gap: 6px;" onclick="openModal('modal-edit-reading')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Atualizar Leitura</button>
             </div>
             {% if book.readings and book.readings|length > 0 %}
                 <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
@@ -221,8 +221,8 @@
                             {% endfor %}
                             
                             {% for shelf in reading.shelves %}
-                                <span style="background-color: var(--text-secondary); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;">
-                                    📚 {{ shelf }}
+                                <span style="background-color: var(--text-secondary); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> {{ shelf }}
                                 </span>
                             {% endfor %}
                         </div>
