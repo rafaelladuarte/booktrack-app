@@ -350,3 +350,52 @@ def create_entity_ajax_view(request, entity_type):
             return JsonResponse({'error': str(e)}, status=500)
             
     return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+def categories_view(request):
+    headers = get_headers(request)
+    try:
+        resp = httpx.get(f"{API_URL}/categories", headers=headers)
+        categories = resp.json().get('data', []) if resp.status_code == 200 else []
+    except Exception:
+        categories = []
+        
+    tree = []
+    lookup = {c['id']: {**c, 'children': []} for c in categories}
+    for c in categories:
+        if c['parent_id'] and c['parent_id'] in lookup:
+            lookup[c['parent_id']]['children'].append(lookup[c['id']])
+        elif not c['parent_id']:
+            tree.append(lookup[c['id']])
+            
+    return render(request, 'books/categories.html', {
+        'categories_tree': tree, 
+        'categories_flat': categories,
+        'categories_json': json.dumps(categories)
+    })
+
+def manage_category_ajax_view(request, category_id=None):
+    token = request.session.get('access_token')
+    if not token:
+        return JsonResponse({'error': 'Não autorizado'}, status=401)
+    
+    headers = {'Authorization': f'Bearer {token}'}
+    
+    try:
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            resp = httpx.post(f"{API_URL}/categories", json=data, headers=headers)
+        elif request.method == 'PUT' and category_id:
+            data = json.loads(request.body)
+            resp = httpx.put(f"{API_URL}/categories/{category_id}", json=data, headers=headers)
+        elif request.method == 'DELETE' and category_id:
+            resp = httpx.delete(f"{API_URL}/categories/{category_id}", headers=headers)
+        else:
+            return JsonResponse({'error': 'Método não permitido'}, status=405)
+            
+        if resp.status_code in [200, 201]:
+            return JsonResponse(resp.json())
+        else:
+            return JsonResponse({'error': resp.text}, status=resp.status_code)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
