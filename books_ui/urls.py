@@ -10,4 +10,5 @@ urlpatterns = [
     path('book/<int:book_id>/edit-book/', views.edit_book_view, name='edit_book'),
     path('book/<int:book_id>/edit-reading/', views.edit_reading_view, name='edit_reading'),
     path('book/<int:book_id>/delete/', views.delete_book_view, name='delete_book'),
+    path('api/create-entity/<str:entity_type>/', views.create_entity_ajax_view, name='create_entity_ajax'),
 ]

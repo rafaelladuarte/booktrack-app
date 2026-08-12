@@ -3,7 +3,7 @@ import json
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 
 API_URL = settings.API_BASE_URL
 
@@ -325,3 +325,28 @@ def delete_book_view(request, book_id):
             messages.error(request, "Erro de comunicação com o servidor.")
             
     return redirect('library')
+
+def create_entity_ajax_view(request, entity_type):
+    if request.method == 'POST':
+        token = request.session.get('access_token')
+        if not token:
+            return JsonResponse({'error': 'Não autorizado'}, status=401)
+        
+        headers = {'Authorization': f'Bearer {token}'}
+        valid_entities = ['authors', 'publishers', 'collections']
+        
+        if entity_type not in valid_entities:
+            return JsonResponse({'error': 'Tipo de entidade inválido'}, status=400)
+            
+        try:
+            data = json.loads(request.body)
+            resp = httpx.post(f"{API_URL}/{entity_type}", json=data, headers=headers)
+            
+            if resp.status_code in [200, 201]:
+                return JsonResponse(resp.json())
+            else:
+                return JsonResponse({'error': resp.text}, status=resp.status_code)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+            
+    return JsonResponse({'error': 'Método não permitido'}, status=405)

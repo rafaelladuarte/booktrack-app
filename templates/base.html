@@ -78,5 +78,135 @@
             </div>
         </main>
     </div>
+
+    <!-- Generic Entity Creation Modal -->
+    <div class="modal-overlay" id="modal-create-entity">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('modal-create-entity')">✖</button>
+            <h2 class="modal-title" id="create-entity-title">Novo Cadastro</h2>
+            <form id="form-create-entity">
+                <input type="hidden" id="entity_type" name="entity_type">
+                <input type="hidden" id="target_select_id" name="target_select_id">
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="entity_name" name="name" required>
+                </div>
+                <!-- Campos extras para autores -->
+                <div id="author_extra_fields" style="display: none;">
+                    <div class="form-group">
+                        <label>Gênero</label>
+                        <select id="entity_gender" name="gender">
+                            <option value="">Selecione...</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                            <option value="O">Outros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>País de Origem</label>
+                        <input type="text" id="entity_country" name="country_of_origin">
+                    </div>
+                </div>
+                <button type="submit" class="btn-save">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openEntityModal(type, title, targetSelectId) {
+        document.getElementById('entity_type').value = type;
+        document.getElementById('target_select_id').value = targetSelectId;
+        document.getElementById('create-entity-title').innerText = title;
+        document.getElementById('entity_name').value = '';
+        
+        if (type === 'authors') {
+            document.getElementById('author_extra_fields').style.display = 'block';
+            document.getElementById('entity_gender').value = '';
+            document.getElementById('entity_country').value = '';
+        } else {
+            document.getElementById('author_extra_fields').style.display = 'none';
+        }
+        
+        document.getElementById('modal-create-entity').style.display = 'flex';
+    }
+
+    if (typeof window.closeModal !== 'function') {
+        window.closeModal = function(id) {
+            document.getElementById(id).style.display = 'none';
+        };
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.getElementById('form-create-entity').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const type = document.getElementById('entity_type').value;
+        const targetSelectId = document.getElementById('target_select_id').value;
+        const name = document.getElementById('entity_name').value;
+        const btn = this.querySelector('button[type="submit"]');
+        
+        const payload = { name: name };
+        if (type === 'authors') {
+            const gender = document.getElementById('entity_gender').value;
+            const country = document.getElementById('entity_country').value;
+            if (gender) payload.gender = gender;
+            if (country) payload.country_of_origin = country;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Salvando...';
+
+        fetch(`/api/create-entity/${type}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(res => {
+            btn.disabled = false;
+            btn.innerText = 'Salvar';
+            
+            if (res.status >= 200 && res.status < 300) {
+                const entity = res.body; 
+                if (entity && entity.id && entity.name) {
+                    const selects = document.querySelectorAll(`select[name="${targetSelectId}"]`);
+                    selects.forEach(selectEl => {
+                        const option = document.createElement('option');
+                        option.value = entity.id;
+                        option.textContent = entity.name;
+                        selectEl.appendChild(option);
+                        selectEl.value = entity.id;
+                    });
+                }
+                closeModal('modal-create-entity');
+            } else {
+                alert('Erro ao criar: ' + (res.body.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = 'Salvar';
+            alert('Erro de conexão');
+            console.error(err);
+        });
+    });
+    </script>
 </body>
 </html>

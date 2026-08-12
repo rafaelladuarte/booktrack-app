@@ -246,7 +246,10 @@
                 <input type="number" name="original_publication_year" value="{{ book.original_publication_year|default:'' }}">
             </div>
             <div class="form-group">
-                <label>Autor</label>
+                <label style="display: flex; justify-content: space-between;">
+                    Autor
+                    <a href="#" onclick="openEntityModal('authors', 'Novo Autor', 'author_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
+                </label>
                 <select name="author_id">
                     <option value="">Selecione...</option>
                     {% for a in options.authors %}
@@ -273,7 +276,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Editora</label>
+                <label style="display: flex; justify-content: space-between;">
+                    Editora
+                    <a href="#" onclick="openEntityModal('publishers', 'Nova Editora', 'publisher_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
+                </label>
                 <select name="publisher_id">
                     <option value="">Selecione...</option>
                     {% for p in options.publishers %}
@@ -282,7 +288,10 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Coleção</label>
+                <label style="display: flex; justify-content: space-between;">
+                    Coleção
+                    <a href="#" onclick="openEntityModal('collections', 'Nova Coleção', 'collection_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
+                </label>
                 <select name="collection_id">
                     <option value="">Selecione...</option>
                     {% for col in options.collections %}
