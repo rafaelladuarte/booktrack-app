@@ -59,13 +59,13 @@
         <!-- Main Wrapper -->
         <main class="main-wrapper">
             <header class="app-header">
-                <div class="search-box">
+                <form method="get" action="{% url 'library' %}" class="search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" class="search-input" placeholder="Buscar livros, autores...">
-                </div>
+                    <input type="text" name="q" class="search-input" placeholder="Buscar livros, autores..." value="{{ request.GET.q|default_if_none:'' }}">
+                </form>
                 <div class="user-profile">
                     <!-- Placeholder para futuro usuário -->
                 </div>

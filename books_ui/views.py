@@ -88,7 +88,7 @@ def library_view(request):
 
     # Construir query params a partir dos filtros selecionados
     params = {}
-    for key in ('tag_id', 'status_id', 'author_country', 'author_gender'):
+    for key in ('tag_id', 'status_id', 'author_country', 'author_gender', 'q'):
         value = request.GET.get(key)
         if value:
             params[key] = value
@@ -139,6 +139,9 @@ def library_view(request):
         g = active_filters['author_gender']
         label = "Feminino" if g == 'F' else ("Masculino" if g == 'M' else "Outros")
         active_chips.append({'key': 'author_gender', 'label': 'Gênero do Autor', 'value': label})
+
+    if active_filters.get('q'):
+        active_chips.append({'key': 'q', 'label': 'Busca', 'value': active_filters['q']})
 
     try:
         response = httpx.get(f"{API_URL}/books", headers=headers, params=params)
