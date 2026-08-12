@@ -150,6 +150,16 @@ def library_view(request):
         books = []
         messages.error(request, "Erro de conexão com o servidor.")
 
+    options = {}
+    try:
+        options['categories'] = categories
+        options['authors'] = httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', [])
+        options['formats'] = httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', [])
+        options['publishers'] = httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', [])
+        options['collections'] = httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', [])
+    except Exception:
+        pass
+
     return render(request, 'books/library.html', {
         'books': books,
         'category_tree': category_tree,
@@ -159,6 +169,7 @@ def library_view(request):
         'countries': countries,
         'active_filters': active_filters,
         'active_chips': active_chips,
+        'options': options,
     })
 
 def book_detail_view(request, book_id):
@@ -269,3 +280,45 @@ def edit_reading_view(request, book_id):
             messages.error(request, f"Erro de comunicação com servidor: {e}")
             
     return redirect('book_detail', book_id=book_id)
+
+def create_book_view(request):
+    if request.method == 'POST':
+        headers = get_headers(request)
+        data = {}
+        fields = ['title', 'original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id', 'cover_url']
+        for field in fields:
+            val = request.POST.get(field)
+            if val:
+                if field in ['original_publication_year', 'total_pages', 'author_id', 'category_id', 'format_id', 'publisher_id', 'collection_id']:
+                    data[field] = int(val)
+                else:
+                    data[field] = val
+                    
+        try:
+            resp = httpx.post(f"{API_URL}/books", json=data, headers=headers)
+            if resp.status_code in [200, 201]:
+                messages.success(request, "Livro adicionado com sucesso!")
+            elif resp.status_code == 403:
+                messages.error(request, "Você não tem permissão para criar livros.")
+            else:
+                messages.error(request, f"Erro ao criar livro: {resp.text}")
+        except Exception:
+            messages.error(request, "Erro de comunicação com o servidor.")
+            
+    return redirect('library')
+
+def delete_book_view(request, book_id):
+    if request.method == 'POST':
+        headers = get_headers(request)
+        try:
+            resp = httpx.delete(f"{API_URL}/books/{book_id}", headers=headers)
+            if resp.status_code == 200:
+                messages.success(request, "Livro excluído com sucesso!")
+            elif resp.status_code == 403:
+                messages.error(request, "Você não tem permissão para excluir livros.")
+            else:
+                messages.error(request, "Erro ao excluir livro.")
+        except Exception:
+            messages.error(request, "Erro de comunicação com o servidor.")
+            
+    return redirect('library')

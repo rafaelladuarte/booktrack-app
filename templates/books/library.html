@@ -1,12 +1,82 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+/* Modals */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+.modal-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none; border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem; cursor: pointer;
+}
+.modal-close:hover { color: var(--text-primary); }
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.form-group label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+.form-group input, .form-group select {
+    background: var(--background-dark);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+}
+.btn-save {
+    background: var(--accent);
+    color: var(--background-dark);
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+}
+.btn-save:hover { opacity: 0.9; }
+</style>
+
 <div class="section-header">
     <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
         <div style="display: flex; align-items: baseline;">
             <h1 class="section-title">Minha Biblioteca</h1>
             <span class="item-count">{{ books|length }} livros</span>
         </div>
+        <button class="btn-save" style="width: auto; margin-top: 0; padding: 8px 16px;" onclick="openModal('modal-create-book')">+ Novo Livro</button>
     </div>
 </div>
 
@@ -113,7 +183,87 @@
     {% endif %}
 </div>
 
+<!-- Modal Create Book -->
+<div class="modal-overlay" id="modal-create-book">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal('modal-create-book')">✖</button>
+        <h2 class="modal-title">Novo Livro</h2>
+        <form method="POST" action="{% url 'create_book' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" name="title" required>
+            </div>
+            <div class="form-group">
+                <label>URL da Capa</label>
+                <input type="url" name="cover_url">
+            </div>
+            <div class="form-group">
+                <label>Páginas</label>
+                <input type="number" name="total_pages">
+            </div>
+            <div class="form-group">
+                <label>Ano de Publicação</label>
+                <input type="number" name="original_publication_year">
+            </div>
+            <div class="form-group">
+                <label>Autor</label>
+                <select name="author_id">
+                    <option value="">Selecione...</option>
+                    {% for a in options.authors %}
+                    <option value="{{ a.id }}">{{ a.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select name="category_id">
+                    <option value="">Selecione...</option>
+                    {% for c in options.categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Formato</label>
+                <select name="format_id">
+                    <option value="">Selecione...</option>
+                    {% for f in options.formats %}
+                    <option value="{{ f.id }}">{{ f.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Editora</label>
+                <select name="publisher_id">
+                    <option value="">Selecione...</option>
+                    {% for p in options.publishers %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Coleção</label>
+                <select name="collection_id">
+                    <option value="">Selecione...</option>
+                    {% for col in options.collections %}
+                    <option value="{{ col.id }}">{{ col.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-save">Adicionar Livro</button>
+        </form>
+    </div>
+</div>
+
 <script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    
     const categoryTree = {{ category_tree_json|safe|default:'[]' }};
     const activeCategoriaId = '{{ active_filters.categoria_id|default:"" }}';
     const activeSubcategoriaId = '{{ active_filters.subcategoria_id|default:"" }}';

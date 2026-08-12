@@ -146,7 +146,10 @@
     <div class="detail-info">
         <div style="display: flex; align-items: center; justify-content: space-between;">
             <h1 class="detail-title">{{ book.title }}</h1>
-            <button class="btn-edit" onclick="openModal('modal-edit-book')">✏️ Editar Livro</button>
+            <div>
+                <button class="btn-edit" onclick="openModal('modal-edit-book')">✏️ Editar Livro</button>
+                <button class="btn-edit" style="color: var(--danger-color, #ff4d4d); border-color: var(--danger-color, #ff4d4d);" onclick="openModal('modal-delete-book')">🗑️ Excluir Livro</button>
+            </div>
         </div>
         <div class="detail-author">{% if book.author %}{{ book.author.name }}{% else %}Autor desconhecido{% endif %}</div>
         
@@ -340,4 +343,20 @@
         document.getElementById(id).style.display = 'none';
     }
 </script>
+
+<!-- Modal Delete Book -->
+<div class="modal-overlay" id="modal-delete-book">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <button class="modal-close" onclick="closeModal('modal-delete-book')">✖</button>
+        <h2 class="modal-title" style="color: var(--danger-color, #ff4d4d);">Excluir Livro</h2>
+        <p style="margin-bottom: 20px;">Tem certeza que deseja excluir o livro <strong>{{ book.title }}</strong>? Esta ação não pode ser desfeita.</p>
+        <form method="POST" action="{% url 'delete_book' book_id=book.id %}">
+            {% csrf_token %}
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-edit" onclick="closeModal('modal-delete-book')" style="margin-left: 0;">Cancelar</button>
+                <button type="submit" class="btn-save" style="background-color: var(--danger-color, #ff4d4d); width: auto; margin-top: 0;">Sim, Excluir</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
