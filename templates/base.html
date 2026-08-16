@@ -87,6 +87,16 @@
 
             <!-- Main Content Area -->
             <div class="library-viewport">
+                {% if messages %}
+                    <div class="messages-container" style="padding: 1rem; margin-bottom: 1rem;">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}" style="padding: 10px; border-radius: 4px; margin-bottom: 10px; background-color: var(--background-dark); border-left: 4px solid var(--accent); color: var(--text-primary);">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
                 {% block content %}
                 {% endblock %}
             </div>
