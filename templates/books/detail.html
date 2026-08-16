@@ -126,6 +126,26 @@
 .btn-edit:hover {
     background: var(--accent-glow);
 }
+
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+}
+.star-rating input {
+    display: none;
+}
+.star-rating label {
+    cursor: pointer;
+    color: var(--border, #444);
+    transition: color 0.2s;
+}
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input:checked ~ label {
+    color: #ffc107;
+}
 </style>
 
 <div class="section-header">
@@ -192,7 +212,15 @@
                 {% for reading in book.readings %}
                     <div style="border: 1px solid var(--border); padding: 15px; border-radius: var(--radius-lg); background-color: var(--bg-card);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <strong>Status: {{ reading.status.name|default:"Desconhecido" }}</strong>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <strong>Status: {{ reading.status.name|default:"Desconhecido" }}</strong>
+                                {% if reading.rating %}
+                                <span style="color: #ffc107; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; font-size: 0.9em;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    {{ reading.rating }}/5
+                                </span>
+                                {% endif %}
+                            </div>
                             {% if reading.start_date or reading.end_date %}
                                 <span style="font-size: 0.9em; color: var(--text-secondary);">
                                     {{ reading.start_date|default:"?" }} a {{ reading.end_date|default:"?" }}
@@ -346,6 +374,21 @@
             <div class="form-group">
                 <label>Data de Início</label>
                 <input type="date" name="start_date" value="{% if active_reading and active_reading.start_date %}{{ active_reading.start_date }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Avaliação</label>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5" {% if active_reading and active_reading.rating == 5 %}checked{% endif %} />
+                    <label for="star5" title="5 estrelas"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></label>
+                    <input type="radio" id="star4" name="rating" value="4" {% if active_reading and active_reading.rating == 4 %}checked{% endif %} />
+                    <label for="star4" title="4 estrelas"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></label>
+                    <input type="radio" id="star3" name="rating" value="3" {% if active_reading and active_reading.rating == 3 %}checked{% endif %} />
+                    <label for="star3" title="3 estrelas"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></label>
+                    <input type="radio" id="star2" name="rating" value="2" {% if active_reading and active_reading.rating == 2 %}checked{% endif %} />
+                    <label for="star2" title="2 estrelas"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></label>
+                    <input type="radio" id="star1" name="rating" value="1" {% if active_reading and active_reading.rating == 1 %}checked{% endif %} />
+                    <label for="star1" title="1 estrela"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></label>
+                </div>
             </div>
             <div class="form-group">
                 <label>Resenha / Crítica</label>

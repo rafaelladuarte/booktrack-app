@@ -239,11 +239,11 @@ def edit_reading_view(request, book_id):
     if request.method == 'POST':
         headers = get_headers(request)
         data = {}
-        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date', 'review']
+        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date', 'review', 'rating']
         for field in fields:
             val = request.POST.get(field)
             if val:
-                if field in ['status_id', 'pages_read']:
+                if field in ['status_id', 'pages_read', 'rating']:
                     data[field] = int(val)
                 else:
                     data[field] = val
