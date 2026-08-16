@@ -146,6 +146,59 @@
 .star-rating input:checked ~ label {
     color: #ffc107;
 }
+
+/* Seção de Citações */
+.quotes-section { margin-top: 24px; }
+.quotes-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.quote-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    position: relative;
+    transition: background 0.2s;
+}
+.quote-card:hover { background: var(--bg-card-hover); }
+.quote-content {
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin: 0 0 6px 0;
+}
+.quote-page {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.btn-delete-quote {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s, background 0.2s;
+    display: flex; align-items: center;
+}
+.btn-delete-quote:hover { color: #ff4d4d; background: rgba(255,77,77,0.1); }
+.btn-add-quote {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: var(--radius-xl);
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+.btn-add-quote:hover { border-color: var(--accent); color: var(--accent-text); }
 </style>
 
 <div class="section-header">
@@ -253,6 +306,45 @@
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> {{ shelf }}
                                 </span>
                             {% endfor %}
+                        </div>
+
+                        <!-- Seção de Citações da Leitura -->
+                        <div class="quotes-section" data-reading-id="{{ reading.id }}">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <h4 style="margin:0; font-size:0.9rem; color:var(--text-secondary);">
+                                    Citações &amp; Notas
+                                    <span class="quotes-count"
+                                          style="background:var(--bg-secondary);border-radius:10px;padding:1px 8px;font-size:0.8rem;margin-left:6px;">
+                                        {{ reading.quotes|length }}
+                                    </span>
+                                </h4>
+                            </div>
+
+                            <div class="quotes-list" id="quotes-list-{{ reading.id }}">
+                                {% for quote in reading.quotes %}
+                                <div class="quote-card" id="quote-{{ quote.id }}">
+                                    <p class="quote-content">"{{ quote.content }}"</p>
+                                    {% if quote.page_number %}
+                                    <span class="quote-page">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                                        p. {{ quote.page_number }}
+                                    </span>
+                                    {% endif %}
+                                    <button class="btn-delete-quote" onclick="deleteQuote({{ quote.id }}, {{ reading.id }})" title="Remover citação">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                </div>
+                                {% empty %}
+                                <p id="empty-quotes-{{ reading.id }}" style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">
+                                    Nenhuma citação registrada ainda.
+                                </p>
+                                {% endfor %}
+                            </div>
+
+                            <button class="btn-add-quote" onclick="openAddQuoteModal({{ reading.id }})">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Nova Citação
+                            </button>
                         </div>
                     </div>
                 {% endfor %}
@@ -409,6 +501,29 @@
     </div>
 </div>
 
+<!-- Modal: Nova Citação -->
+<div class="modal-overlay" id="modal-add-quote">
+    <div class="modal-content" style="max-width: 480px;">
+        <button class="modal-close" onclick="closeModal('modal-add-quote')">✖</button>
+        <h2 class="modal-title">Nova Citação</h2>
+        <input type="hidden" id="quote-reading-id" value="">
+        <div class="form-group">
+            <label>Trecho / Nota</label>
+            <textarea id="quote-content" rows="4"
+                style="background:var(--background-dark);border:1px solid var(--border);
+                       color:var(--text-primary);padding:10px;border-radius:var(--radius-md);
+                       font-family:inherit;resize:vertical;"
+                placeholder="Digite o trecho do livro ou sua anotação..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Página (opcional)</label>
+            <input type="number" id="quote-page" min="1"
+                   placeholder="Ex: 42">
+        </div>
+        <button class="btn-save" onclick="submitQuote()">Salvar Citação</button>
+    </div>
+</div>
+
 <script>
     function openModal(id) {
         document.getElementById(id).style.display = 'flex';
@@ -416,7 +531,119 @@
     function closeModal(id) {
         document.getElementById(id).style.display = 'none';
     }
-</script>
+
+    // --- Citações & Notas AJAX ---
+    let _activeReadingId = null;
+
+    function openAddQuoteModal(readingId) {
+        _activeReadingId = readingId;
+        document.getElementById('quote-reading-id').value = readingId;
+        document.getElementById('quote-content').value = '';
+        document.getElementById('quote-page').value = '';
+        openModal('modal-add-quote');
+    }
+
+    function submitQuote() {
+        const content = document.getElementById('quote-content').value.trim();
+        const page    = document.getElementById('quote-page').value;
+        if (!content) {
+            alert('O campo de citação não pode estar vazio.');
+            return;
+        }
+        const readingId = document.getElementById('quote-reading-id').value;
+        const payload = { content };
+        if (page) payload.page_number = parseInt(page);
+
+        fetch(`/api/quotes/${readingId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json().then(data => ({ status: r.status, data })))
+        .then(({ status, data }) => {
+            if (status === 201) {
+                closeModal('modal-add-quote');
+                _appendQuoteCard(readingId, data);
+            } else {
+                alert('Erro ao salvar citação: ' + (data.error || 'Tente novamente.'));
+            }
+        })
+        .catch(() => alert('Erro de comunicação com o servidor.'));
+    }
+
+    function _appendQuoteCard(readingId, quote) {
+        const list = document.getElementById(`quotes-list-${readingId}`);
+        // Remove mensagem "Nenhuma citação"
+        const empty = document.getElementById(`empty-quotes-${readingId}`);
+        if (empty) empty.remove();
+
+        const div = document.createElement('div');
+        div.className = 'quote-card';
+        div.id = `quote-${quote.id}`;
+        div.innerHTML = `
+            <p class="quote-content">"${quote.content}"</p>
+            ${quote.page_number ? `<span class="quote-page">p. ${quote.page_number}</span>` : ''}
+            <button class="btn-delete-quote"
+                    onclick="deleteQuote(${quote.id}, ${readingId})"
+                    title="Remover citação">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+            </button>
+        `;
+        list.appendChild(div);
+
+        // Atualiza contador
+        const counter = document.querySelector(`[data-reading-id="${readingId}"] .quotes-count`);
+        if (counter) counter.textContent = list.querySelectorAll('.quote-card').length;
+    }
+
+    function deleteQuote(quoteId, readingId) {
+        if (!confirm('Remover esta citação?')) return;
+        fetch(`/api/quotes/delete/${quoteId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                const card = document.getElementById(`quote-${quoteId}`);
+                if (card) card.remove();
+
+                const list = document.getElementById(`quotes-list-${readingId}`);
+                const remaining = list ? list.querySelectorAll('.quote-card').length : 0;
+
+                // Atualiza contador
+                const counter = document.querySelector(`[data-reading-id="${readingId}"] .quotes-count`);
+                if (counter) counter.textContent = remaining;
+
+                // Mostra mensagem de vazio se necessário
+                if (remaining === 0) {
+                    const p = document.createElement('p');
+                    p.id = `empty-quotes-${readingId}`;
+                    p.style = 'color:var(--text-muted);font-size:0.85rem;font-style:italic;';
+                    p.textContent = 'Nenhuma citação registrada ainda.';
+                    list.appendChild(p);
+                }
+            } else {
+                alert('Erro ao remover citação.');
+            }
+        })
+        .catch(() => alert('Erro de comunicação com o servidor.'));
+    }
+
+    if (typeof getCookie === 'undefined') {
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : null;
+        }
+    }
+
 
 <!-- Modal Delete Book -->
 <div class="modal-overlay" id="modal-delete-book">

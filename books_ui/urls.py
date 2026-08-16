@@ -14,4 +14,6 @@ urlpatterns = [
     path('categories/', views.categories_view, name='categories'),
     path('api/manage-category/', views.manage_category_ajax_view, name='manage_category_ajax_create'),
     path('api/manage-category/<int:category_id>/', views.manage_category_ajax_view, name='manage_category_ajax'),
+    path('api/quotes/<int:reading_id>/', views.create_quote_ajax_view, name='create_quote_ajax'),
+    path('api/quotes/delete/<int:quote_id>/', views.delete_quote_ajax_view, name='delete_quote_ajax'),
 ]

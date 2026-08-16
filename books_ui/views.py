@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
+from django.views.decorators.http import require_POST
 
 API_URL = settings.API_BASE_URL
 
@@ -399,3 +400,33 @@ def manage_category_ajax_view(request, category_id=None):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+
+@require_POST
+def create_quote_ajax_view(request, reading_id):
+    """Proxy AJAX: cria citação via API FastAPI."""
+    headers = get_headers(request)
+    try:
+        payload = json.loads(request.body)
+        resp = httpx.post(
+            f"{API_URL}/quotes/{reading_id}",
+            json=payload,
+            headers=headers
+        )
+        if resp.status_code in [200, 201]:
+            return JsonResponse(resp.json(), status=201)
+        return JsonResponse({'error': resp.text}, status=resp.status_code)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_POST
+def delete_quote_ajax_view(request, quote_id):
+    """Proxy AJAX: deleta citação via API FastAPI."""
+    headers = get_headers(request)
+    try:
+        resp = httpx.delete(f"{API_URL}/quotes/{quote_id}", headers=headers)
+        if resp.status_code == 204:
+            return JsonResponse({'ok': True})
+        return JsonResponse({'error': resp.text}, status=resp.status_code)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
