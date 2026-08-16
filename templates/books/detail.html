@@ -585,7 +585,7 @@
         div.id = `quote-${quote.id}`;
         div.innerHTML = `
             <p class="quote-content">"${quote.content}"</p>
-            ${quote.page_number ? `<span class="quote-page">p. ${quote.page_number}</span>` : ''}
+            ${quote.page_number ? '<span class="quote-page">p. ' + quote.page_number + '</span>' : ''}
             <button class="btn-delete-quote"
                     onclick="deleteQuote(${quote.id}, ${readingId})"
                     title="Remover citação">
