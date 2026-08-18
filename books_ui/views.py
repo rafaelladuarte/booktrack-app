@@ -61,19 +61,19 @@ def library_view(request):
 
         tag_resp = httpx.get(f"{API_URL}/tags", headers=headers)
         if tag_resp.status_code == 200:
-            tags = tag_resp.json().get('data', [])
+            tags = sorted(tag_resp.json().get('data', []), key=lambda x: x['name'])
 
         status_resp = httpx.get(f"{API_URL}/reading_status", headers=headers)
         if status_resp.status_code == 200:
-            statuses = status_resp.json().get('data', [])
+            statuses = sorted(status_resp.json().get('data', []), key=lambda x: x['name'])
 
         format_resp = httpx.get(f"{API_URL}/formats", headers=headers)
         if format_resp.status_code == 200:
-            formats = format_resp.json().get('data', [])
+            formats = sorted(format_resp.json().get('data', []), key=lambda x: x['name'])
 
         shelve_resp = httpx.get(f"{API_URL}/shelves", headers=headers)
         if shelve_resp.status_code == 200:
-            shelves = shelve_resp.json().get('data', [])
+            shelves = sorted(shelve_resp.json().get('data', []), key=lambda x: x['name'])
 
         country_resp = httpx.get(f"{API_URL}/authors/countries", headers=headers)
         if country_resp.status_code == 200:
