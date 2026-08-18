@@ -356,6 +356,19 @@
     </div>
 </div>
 
+{% if collection_books %}
+<div class="collection-section" style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <h3 style="font-size: 1.4rem; margin-bottom: 24px; color: var(--text-primary); font-weight: 600;">
+        Mais de {{ book.collection.name }}
+    </h3>
+    <div class="book-grid" style="--grid-min-card-width: 140px; --grid-gap: 16px;">
+        {% for col_book in collection_books %}
+            {% include 'components/book_card.html' with book=col_book %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Modal Edit Book -->
 <div class="modal-overlay" id="modal-edit-book">
     <div class="modal-content">

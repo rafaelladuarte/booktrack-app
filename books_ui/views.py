@@ -215,6 +215,20 @@ def book_detail_view(request, book_id):
     if not book:
         return render(request, 'components/empty_state.html') # fallback
         
+    # --- NOVA BUSCA DE COLEÇÃO ---
+    collection_books = []
+    if book and book.get('collection'):
+        try:
+            col_id = book['collection']['id']
+            col_resp = httpx.get(f"{API_URL}/books?collection_id={col_id}", headers=get_headers(request))
+            if col_resp.status_code == 200:
+                raw_col_books = col_resp.json().get('data', [])
+                collection_books = [b for b in raw_col_books if str(b['id']) != str(book_id)]
+                collection_books.sort(key=lambda x: x.get('original_publication_year') or 9999)
+        except Exception:
+            pass
+    # -----------------------------
+
     # Buscar opções para os formulários de edição
     options = {}
     headers = get_headers(request)
@@ -229,7 +243,7 @@ def book_detail_view(request, book_id):
     except Exception:
         pass
         
-    return render(request, 'books/detail.html', {'book': book, 'options': options})
+    return render(request, 'books/detail.html', {'book': book, 'options': options, 'collection_books': collection_books})
 
 def edit_book_view(request, book_id):
     if request.method == 'POST':
