@@ -30,6 +30,18 @@
 <div class="filter-panel-wrapper" id="filter-panel-wrapper" style="display: block;">
 <form method="get" action="{% url 'library' %}" class="filter-bar filter-panel" id="filter-form">
     <div class="filter-group">
+        <label class="filter-label" for="filter-shelve">Estante</label>
+        <select name="shelve_id" id="filter-shelve" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for shelve in shelves %}
+                <option value="{{ shelve.id }}" {% if active_filters.shelve_id == shelve.id|stringformat:"d" %}selected{% endif %}>
+                    {{ shelve.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
         <label class="filter-label" for="filter-grupo">Grupo</label>
         <select name="grupo_id" id="filter-grupo" class="filter-select" onchange="this.form.submit()">
             <option value="">Todos</option>
@@ -48,36 +60,14 @@
         </select>
     </div>
 
+    <!-- 
     <div class="filter-group">
         <label class="filter-label" for="filter-subcategoria">Subcategoria</label>
         <select name="subcategoria_id" id="filter-subcategoria" class="filter-select" onchange="this.form.submit()" {% if not active_filters.categoria_id %}disabled{% endif %}>
             <option value="">Todos</option>
         </select>
     </div>
-
-    <div class="filter-group">
-        <label class="filter-label" for="filter-tag">Tag</label>
-        <select name="tag_id" id="filter-tag" class="filter-select" onchange="this.form.submit()">
-            <option value="">Todas</option>
-            {% for tag in tags %}
-                <option value="{{ tag.id }}" {% if active_filters.tag_id == tag.id|stringformat:"d" %}selected{% endif %}>
-                    {{ tag.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="filter-group">
-        <label class="filter-label" for="filter-status">Status</label>
-        <select name="status_id" id="filter-status" class="filter-select" onchange="this.form.submit()">
-            <option value="">Todos</option>
-            {% for status in statuses %}
-                <option value="{{ status.id }}" {% if active_filters.status_id == status.id|stringformat:"d" %}selected{% endif %}>
-                    {{ status.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+    -->
 
     <div class="filter-group">
         <label class="filter-label" for="filter-format">Formato</label>
@@ -86,18 +76,6 @@
             {% for format in formats %}
                 <option value="{{ format.id }}" {% if active_filters.format_id == format.id|stringformat:"d" %}selected{% endif %}>
                     {{ format.name }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="filter-group">
-        <label class="filter-label" for="filter-shelve">Estante</label>
-        <select name="shelve_id" id="filter-shelve" class="filter-select" onchange="this.form.submit()">
-            <option value="">Todas</option>
-            {% for shelve in shelves %}
-                <option value="{{ shelve.id }}" {% if active_filters.shelve_id == shelve.id|stringformat:"d" %}selected{% endif %}>
-                    {{ shelve.name }}
                 </option>
             {% endfor %}
         </select>
@@ -116,6 +94,31 @@
     </div>
 
     <div class="filter-group">
+        <label class="filter-label" for="filter-status">Status</label>
+        <select name="status_id" id="filter-status" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for status in statuses %}
+                <option value="{{ status.id }}" {% if active_filters.status_id == status.id|stringformat:"d" %}selected{% endif %}>
+                    {{ status.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-tag">Tag</label>
+        <select name="tag_id" id="filter-tag" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for tag in tags %}
+                <option value="{{ tag.id }}" {% if active_filters.tag_id == tag.id|stringformat:"d" %}selected{% endif %}>
+                    {{ tag.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!--
+    <div class="filter-group">
         <label class="filter-label" for="filter-author-gender">Gênero</label>
         <select name="author_gender" id="filter-author-gender" class="filter-select" onchange="this.form.submit()">
             <option value="">Todos</option>
@@ -124,6 +127,7 @@
             <option value="O" {% if active_filters.author_gender == 'O' %}selected{% endif %}>Outros / Não Informado</option>
         </select>
     </div>
+    -->
     
 </form>
 </div>
@@ -242,20 +246,20 @@
         const subcategoriaSelect = document.getElementById('filter-subcategoria');
 
         // Reset
-        categoriaSelect.innerHTML = '<option value="">Todos</option>';
-        subcategoriaSelect.innerHTML = '<option value="">Todos</option>';
+        if (categoriaSelect) categoriaSelect.innerHTML = '<option value="">Todos</option>';
+        if (subcategoriaSelect) subcategoriaSelect.innerHTML = '<option value="">Todos</option>';
         
         if (!grupoId) {
-            categoriaSelect.disabled = true;
-            subcategoriaSelect.disabled = true;
+            if (categoriaSelect) categoriaSelect.disabled = true;
+            if (subcategoriaSelect) subcategoriaSelect.disabled = true;
             return;
         }
 
-        categoriaSelect.disabled = false;
-        subcategoriaSelect.disabled = true;
+        if (categoriaSelect) categoriaSelect.disabled = false;
+        if (subcategoriaSelect) subcategoriaSelect.disabled = true;
 
         const group = categoryTree.find(g => String(g.grupo.id) === String(grupoId));
-        if (group && group.categorias) {
+        if (group && group.categorias && categoriaSelect) {
             group.categorias.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat.categoria.id;
@@ -274,9 +278,12 @@
 
     function updateSubcategorias() {
         const grupoId = document.getElementById('filter-grupo').value;
-        const categoriaId = document.getElementById('filter-categoria').value;
+        const categoriaSelect = document.getElementById('filter-categoria');
         const subcategoriaSelect = document.getElementById('filter-subcategoria');
 
+        if (!subcategoriaSelect || !categoriaSelect) return;
+
+        const categoriaId = categoriaSelect.value;
         subcategoriaSelect.innerHTML = '<option value="">Todos</option>';
 
         if (!categoriaId) {
