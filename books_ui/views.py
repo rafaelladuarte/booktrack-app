@@ -174,11 +174,11 @@ def library_view(request):
 
     options = {}
     try:
-        options['categories'] = categories
-        options['authors'] = httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', [])
-        options['formats'] = httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', [])
-        options['publishers'] = httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', [])
-        options['collections'] = httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', [])
+        options['categories'] = sorted(categories, key=lambda x: x['name'])
+        options['authors'] = sorted(httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['formats'] = sorted(httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['publishers'] = sorted(httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['collections'] = sorted(httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', []), key=lambda x: x['name'])
     except Exception:
         pass
 
@@ -282,13 +282,13 @@ def book_detail_view(request, book_id):
     options = {}
     headers = get_headers(request)
     try:
-        options['categories'] = httpx.get(f"{API_URL}/categories", headers=headers).json().get('data', [])
-        options['authors'] = httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', [])
-        options['formats'] = httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', [])
-        options['publishers'] = httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', [])
-        options['collections'] = httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', [])
-        options['statuses'] = httpx.get(f"{API_URL}/reading_status", headers=headers).json().get('data', [])
-        options['tags'] = httpx.get(f"{API_URL}/tags", headers=headers).json().get('data', [])
+        options['categories'] = sorted(httpx.get(f"{API_URL}/categories", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['authors'] = sorted(httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['formats'] = sorted(httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['publishers'] = sorted(httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['collections'] = sorted(httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['statuses'] = sorted(httpx.get(f"{API_URL}/reading_status", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['tags'] = sorted(httpx.get(f"{API_URL}/tags", headers=headers).json().get('data', []), key=lambda x: x['name'])
     except Exception:
         pass
         
