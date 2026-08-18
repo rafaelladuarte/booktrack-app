@@ -237,7 +237,19 @@
                 }
                 closeModal('modal-create-entity');
             } else {
-                alert('Erro ao criar: ' + (res.body.error || 'Erro desconhecido'));
+                const oldError = document.getElementById('create-entity-error');
+                if (oldError) oldError.remove();
+                
+                const errorMsg = res.body.detail || res.body.error || 'Erro desconhecido ao salvar.';
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'create-entity-error';
+                errorDiv.style.color = '#ff6b6b';
+                errorDiv.style.marginBottom = '15px';
+                errorDiv.style.fontSize = '0.9rem';
+                errorDiv.style.fontWeight = '500';
+                errorDiv.innerText = errorMsg;
+                
+                document.getElementById('form-create-entity').prepend(errorDiv);
             }
         })
         .catch(err => {

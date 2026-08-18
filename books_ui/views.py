@@ -429,7 +429,7 @@ def create_entity_ajax_view(request, entity_type):
             if resp.status_code in [200, 201]:
                 return JsonResponse(resp.json())
             else:
-                return JsonResponse({'error': resp.text}, status=resp.status_code)
+                return JsonResponse(resp.json(), status=resp.status_code)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
             
