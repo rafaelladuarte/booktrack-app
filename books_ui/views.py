@@ -182,8 +182,57 @@ def library_view(request):
     except Exception:
         pass
 
+    reading_now = None
+    try:
+        lendo_id = next((s['id'] for s in statuses if s['name'].lower() == 'lendo'), None)
+        if lendo_id:
+            resp = httpx.get(f"{API_URL}/books?status_id={lendo_id}", headers=headers)
+            if resp.status_code == 200:
+                lendo_books = resp.json().get('data', [])
+                if lendo_books:
+                    book_stub = lendo_books[0]
+                    
+                    # O endpoint de listagem não devolve readings, busca os dados completos via detalhe
+                    detail_resp = httpx.get(f"{API_URL}/books/{book_stub['id']}", headers=headers)
+                    if detail_resp.status_code == 200:
+                        detail_data = detail_resp.json().get('data', [])
+                        reading_now = detail_data[0] if detail_data else book_stub
+                    else:
+                        reading_now = book_stub
+
+                    if reading_now.get('readings'):
+                        # Busca especificamente o registro com status "Lendo"
+                        lendo_reading = None
+                        for r in reading_now['readings']:
+                            if r.get('status') and r['status'].get('name', '').lower() == 'lendo':
+                                lendo_reading = r
+                                break
+
+                        if not lendo_reading:
+                            lendo_reading = reading_now['readings'][0]
+
+                        pages_read = lendo_reading.get('pages_read') or 0
+                        total_pages = reading_now.get('total_pages') or 0
+
+                        percentage = 0
+                        if total_pages > 0:
+                            percentage = int((pages_read / total_pages) * 100)
+                            if percentage > 100: percentage = 100
+
+                        reading_now['read_percentage'] = percentage
+                        reading_now['pages_read'] = pages_read
+
+                    quotes_resp = httpx.get(f"{API_URL}/quotes?book_id={reading_now['id']}", headers=headers)
+                    if quotes_resp.status_code == 200:
+                        quotes = quotes_resp.json().get('data', [])
+                        if quotes:
+                            reading_now['last_quote'] = quotes[-1]['content']
+    except Exception:
+        pass
+
     return render(request, 'books/library.html', {
         'books': books,
+        'reading_now': reading_now,
         'category_tree': category_tree,
         'category_tree_json': json.dumps(category_tree),
         'tags': tags,
