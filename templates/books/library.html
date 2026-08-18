@@ -80,6 +80,30 @@
     </div>
 
     <div class="filter-group">
+        <label class="filter-label" for="filter-format">Formato</label>
+        <select name="format_id" id="filter-format" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for format in formats %}
+                <option value="{{ format.id }}" {% if active_filters.format_id == format.id|stringformat:"d" %}selected{% endif %}>
+                    {{ format.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label class="filter-label" for="filter-shelve">Estante</label>
+        <select name="shelve_id" id="filter-shelve" class="filter-select" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for shelve in shelves %}
+                <option value="{{ shelve.id }}" {% if active_filters.shelve_id == shelve.id|stringformat:"d" %}selected{% endif %}>
+                    {{ shelve.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
         <label class="filter-label" for="filter-author-country">País do Autor</label>
         <select name="author_country" id="filter-author-country" class="filter-select" onchange="this.form.submit()">
             <option value="">Todos</option>

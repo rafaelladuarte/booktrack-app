@@ -52,6 +52,8 @@ def library_view(request):
     categories = []
     tags = []
     statuses = []
+    formats = []
+    shelves = []
     try:
         cat_resp = httpx.get(f"{API_URL}/categories", headers=headers)
         if cat_resp.status_code == 200:
@@ -64,6 +66,14 @@ def library_view(request):
         status_resp = httpx.get(f"{API_URL}/reading_status", headers=headers)
         if status_resp.status_code == 200:
             statuses = status_resp.json().get('data', [])
+
+        format_resp = httpx.get(f"{API_URL}/formats", headers=headers)
+        if format_resp.status_code == 200:
+            formats = format_resp.json().get('data', [])
+
+        shelve_resp = httpx.get(f"{API_URL}/shelves", headers=headers)
+        if shelve_resp.status_code == 200:
+            shelves = shelve_resp.json().get('data', [])
 
         country_resp = httpx.get(f"{API_URL}/authors/countries", headers=headers)
         if country_resp.status_code == 200:
@@ -89,7 +99,7 @@ def library_view(request):
 
     # Construir query params a partir dos filtros selecionados
     params = {}
-    for key in ('tag_id', 'status_id', 'author_country', 'author_gender', 'q'):
+    for key in ('tag_id', 'status_id', 'author_country', 'author_gender', 'q', 'format_id', 'shelve_id'):
         value = request.GET.get(key)
         if value:
             params[key] = value
@@ -133,6 +143,14 @@ def library_view(request):
         name = next((s['name'] for s in statuses if str(s['id']) == str(active_filters['status_id'])), active_filters['status_id'])
         active_chips.append({'key': 'status_id', 'label': 'Status', 'value': name})
 
+    if active_filters.get('format_id'):
+        name = next((f['name'] for f in formats if str(f['id']) == str(active_filters['format_id'])), active_filters['format_id'])
+        active_chips.append({'key': 'format_id', 'label': 'Formato', 'value': name})
+
+    if active_filters.get('shelve_id'):
+        name = next((s['name'] for s in shelves if str(s['id']) == str(active_filters['shelve_id'])), active_filters['shelve_id'])
+        active_chips.append({'key': 'shelve_id', 'label': 'Estante', 'value': name})
+
     if active_filters.get('author_country'):
         active_chips.append({'key': 'author_country', 'label': 'País do Autor', 'value': active_filters['author_country']})
         
@@ -170,6 +188,8 @@ def library_view(request):
         'category_tree_json': json.dumps(category_tree),
         'tags': tags,
         'statuses': statuses,
+        'formats': formats,
+        'shelves': shelves,
         'countries': countries,
         'active_filters': active_filters,
         'active_chips': active_chips,
