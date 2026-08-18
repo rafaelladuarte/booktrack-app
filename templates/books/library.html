@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block header_search %}
+<!-- Oculta a barra global pois ela foi movida para os filtros abaixo -->
+{% endblock %}
+
 {% block content %}
 <div class="section-header">
     <div style="display: flex; align-items: baseline; justify-content: space-between; width: 100%;">
@@ -29,6 +33,16 @@
 <!-- Barra de Filtros -->
 <div class="filter-panel-wrapper" id="filter-panel-wrapper" style="display: block;">
 <form method="get" action="{% url 'library' %}" class="filter-bar filter-panel" id="filter-form">
+    <div class="filter-group" style="flex: 1; min-width: 200px;">
+        <label class="filter-label" for="filter-q">Busca Textual</label>
+        <div style="position: relative; width: 100%;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" name="q" id="filter-q" class="search-input" placeholder="Buscar livros..." value="{{ request.GET.q|default_if_none:'' }}" style="width: 100%; padding: 10px 14px 10px 34px; border-radius: var(--radius-md); background-color: var(--background-dark); border: 1px solid var(--border); color: var(--text-primary); font-family: inherit; font-size: 13px; font-weight: 700;">
+        </div>
+    </div>
     <div class="filter-group">
         <label class="filter-label" for="filter-shelve">Estante</label>
         <select name="shelve_id" id="filter-shelve" class="filter-select" onchange="this.form.submit()">
