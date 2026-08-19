@@ -174,14 +174,6 @@ def library_view(request):
         messages.error(request, "Erro de conexão com o servidor.")
 
     options = {}
-    try:
-        options['categories'] = sorted(categories, key=lambda x: x['name'])
-        options['authors'] = sorted(api_request(request, 'GET', f"/authors").json().get('data', []), key=lambda x: x['name'])
-        options['formats'] = sorted(api_request(request, 'GET', f"/formats").json().get('data', []), key=lambda x: x['name'])
-        options['publishers'] = sorted(api_request(request, 'GET', f"/publishers").json().get('data', []), key=lambda x: x['name'])
-        options['collections'] = sorted(api_request(request, 'GET', f"/collections").json().get('data', []), key=lambda x: x['name'])
-    except Exception:
-        pass
 
     reading_now = None
     try:
@@ -278,19 +270,8 @@ def book_detail_view(request, book_id):
             pass
     # -----------------------------
 
-    # Buscar opções para os formulários de edição
+    # Formulários de edição populados via lazy loading AJAX
     options = {}
-    headers = get_headers(request)
-    try:
-        options['categories'] = sorted(api_request(request, 'GET', f"/categories").json().get('data', []), key=lambda x: x['name'])
-        options['authors'] = sorted(api_request(request, 'GET', f"/authors").json().get('data', []), key=lambda x: x['name'])
-        options['formats'] = sorted(api_request(request, 'GET', f"/formats").json().get('data', []), key=lambda x: x['name'])
-        options['publishers'] = sorted(api_request(request, 'GET', f"/publishers").json().get('data', []), key=lambda x: x['name'])
-        options['collections'] = sorted(api_request(request, 'GET', f"/collections").json().get('data', []), key=lambda x: x['name'])
-        options['statuses'] = sorted(api_request(request, 'GET', f"/reading_status").json().get('data', []), key=lambda x: x['name'])
-        options['tags'] = sorted(api_request(request, 'GET', f"/tags").json().get('data', []), key=lambda x: x['name'])
-    except Exception:
-        pass
         
     return render(request, 'books/detail.html', {'book': book, 'options': options, 'collection_books': collection_books})
 
@@ -513,3 +494,24 @@ def delete_quote_ajax_view(request, quote_id):
         return JsonResponse({'error': resp.text}, status=resp.status_code)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+from django.http import JsonResponse
+
+def modal_options_ajax_view(request):
+    token = request.session.get('access_token')
+    if not token:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+    data = {}
+    try:
+        data['categories'] = sorted(api_request(request, 'GET', "/categories").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['authors'] = sorted(api_request(request, 'GET', "/authors").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['formats'] = sorted(api_request(request, 'GET', "/formats").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['publishers'] = sorted(api_request(request, 'GET', "/publishers").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['collections'] = sorted(api_request(request, 'GET', "/collections").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['statuses'] = sorted(api_request(request, 'GET', "/reading_status").json().get('data', []), key=lambda x: x.get('name', ''))
+        data['tags'] = sorted(api_request(request, 'GET', "/tags").json().get('data', []), key=lambda x: x.get('name', ''))
+    except Exception:
+        pass
+    
+    return JsonResponse(data)

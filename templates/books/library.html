@@ -224,29 +224,20 @@
                     Autor
                     <a href="#" onclick="openEntityModal('authors', 'Novo Autor', 'author_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="author_id">
-                    <option value="">Selecione...</option>
-                    {% for a in options.authors %}
-                    <option value="{{ a.id }}">{{ a.name }}</option>
-                    {% endfor %}
+                <select name="author_id" data-modal-option="authors">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Categoria</label>
-                <select name="category_id">
-                    <option value="">Selecione...</option>
-                    {% for c in options.categories %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
-                    {% endfor %}
+                <select name="category_id" data-modal-option="categories">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Formato</label>
-                <select name="format_id">
-                    <option value="">Selecione...</option>
-                    {% for f in options.formats %}
-                    <option value="{{ f.id }}">{{ f.name }}</option>
-                    {% endfor %}
+                <select name="format_id" data-modal-option="formats">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -254,11 +245,8 @@
                     Editora
                     <a href="#" onclick="openEntityModal('publishers', 'Nova Editora', 'publisher_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="publisher_id">
-                    <option value="">Selecione...</option>
-                    {% for p in options.publishers %}
-                    <option value="{{ p.id }}">{{ p.name }}</option>
-                    {% endfor %}
+                <select name="publisher_id" data-modal-option="publishers">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -266,11 +254,8 @@
                     Coleção
                     <a href="#" onclick="openEntityModal('collections', 'Nova Coleção', 'collection_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="collection_id">
-                    <option value="">Selecione...</option>
-                    {% for col in options.collections %}
-                    <option value="{{ col.id }}">{{ col.name }}</option>
-                    {% endfor %}
+                <select name="collection_id" data-modal-option="collections">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <button type="submit" class="btn-save">Adicionar Livro</button>
@@ -279,7 +264,35 @@
 </div>
 
 <script>
+    let modalOptionsLoaded = false;
+    async function loadModalOptions() {
+        if (modalOptionsLoaded) return;
+        const selects = document.querySelectorAll('[data-modal-option]');
+        
+        try {
+            const resp = await fetch('/api/modal-options/');
+            const data = await resp.json();
+            
+            selects.forEach(select => {
+                const key = select.getAttribute('data-modal-option');
+                const options = data[key] || [];
+                let html = '<option value="">Selecione...</option>';
+                const selectedVal = select.getAttribute('data-selected-value');
+                
+                options.forEach(opt => {
+                    const isSelected = selectedVal && selectedVal == opt.id ? 'selected' : '';
+                    html += `<option value="${opt.id}" ${isSelected}>${opt.name}</option>`;
+                });
+                select.innerHTML = html;
+            });
+            modalOptionsLoaded = true;
+        } catch (e) {
+            selects.forEach(s => s.innerHTML = '<option value="">Erro ao carregar</option>');
+        }
+    }
+
     function openModal(id) {
+        loadModalOptions();
         document.getElementById(id).style.display = 'flex';
     }
     function closeModal(id) {

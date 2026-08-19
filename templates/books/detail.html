@@ -401,29 +401,20 @@
                     Autor
                     <a href="#" onclick="openEntityModal('authors', 'Novo Autor', 'author_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="author_id">
-                    <option value="">Selecione...</option>
-                    {% for a in options.authors %}
-                    <option value="{{ a.id }}" {% if book.author and book.author.id == a.id %}selected{% endif %}>{{ a.name }}</option>
-                    {% endfor %}
+                <select name="author_id" data-modal-option="authors" data-selected-value="{{ book.author.id|default:'' }}">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Categoria</label>
-                <select name="category_id">
-                    <option value="">Selecione...</option>
-                    {% for c in options.categories %}
-                    <option value="{{ c.id }}" {% if book.category and book.category.id == c.id %}selected{% endif %}>{{ c.name }}</option>
-                    {% endfor %}
+                <select name="category_id" data-modal-option="categories" data-selected-value="{{ book.category.id|default:'' }}">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Formato</label>
-                <select name="format_id">
-                    <option value="">Selecione...</option>
-                    {% for f in options.formats %}
-                    <option value="{{ f.id }}" {% if book.format and book.format.id == f.id %}selected{% endif %}>{{ f.name }}</option>
-                    {% endfor %}
+                <select name="format_id" data-modal-option="formats" data-selected-value="{{ book.format.id|default:'' }}">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -431,11 +422,8 @@
                     Editora
                     <a href="#" onclick="openEntityModal('publishers', 'Nova Editora', 'publisher_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="publisher_id">
-                    <option value="">Selecione...</option>
-                    {% for p in options.publishers %}
-                    <option value="{{ p.id }}" {% if book.publisher and book.publisher.id == p.id %}selected{% endif %}>{{ p.name }}</option>
-                    {% endfor %}
+                <select name="publisher_id" data-modal-option="publishers" data-selected-value="{{ book.publisher.id|default:'' }}">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -443,11 +431,8 @@
                     Coleção
                     <a href="#" onclick="openEntityModal('collections', 'Nova Coleção', 'collection_id'); return false;" style="color: var(--accent); font-size: 0.8rem; text-decoration: none;">+ Novo</a>
                 </label>
-                <select name="collection_id">
-                    <option value="">Selecione...</option>
-                    {% for col in options.collections %}
-                    <option value="{{ col.id }}" {% if book.collection and book.collection.id == col.id %}selected{% endif %}>{{ col.name }}</option>
-                    {% endfor %}
+                <select name="collection_id" data-modal-option="collections" data-selected-value="{{ book.collection.id|default:'' }}">
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <button type="submit" class="btn-save">Salvar Alterações</button>
@@ -465,11 +450,8 @@
             {% with active_reading=book.readings|first %}
             <div class="form-group">
                 <label>Status</label>
-                <select name="status_id" id="edit-reading-status" required>
-                    <option value="">Selecione...</option>
-                    {% for s in options.statuses %}
-                    <option value="{{ s.id }}" data-name="{{ s.name|lower }}" {% if active_reading and active_reading.status.id == s.id %}selected{% endif %}>{{ s.name }}</option>
-                    {% endfor %}
+                <select name="status_id" id="edit-reading-status" data-modal-option="statuses" data-selected-value="{{ active_reading.status.id|default:'' }}" required>
+                    <option value="">Carregando...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -505,10 +487,8 @@
             </div>
             <div class="form-group">
                 <label>Tags Associadas</label>
-                <select name="tag_ids" multiple style="height: 120px;">
-                    {% for t in options.tags %}
-                    <option value="{{ t.id }}" {% if active_reading and t.name in active_reading.tags %}selected{% endif %}>{{ t.name }}</option>
-                    {% endfor %}
+                <select name="tag_ids" multiple style="height: 120px;" data-modal-option="tags" data-selected-values="{% for tag_obj in active_reading.tags %}{{ tag_obj.name|default:tag_obj }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                    <option value="">Carregando...</option>
                 </select>
                 <small style="color: var(--text-muted); font-size: 0.8rem;">Segure Ctrl/Cmd para selecionar múltiplas.</small>
             </div>
@@ -542,7 +522,37 @@
 </div>
 
 <script>
+    let modalOptionsLoaded = false;
+    async function loadModalOptions() {
+        if (modalOptionsLoaded) return;
+        const selects = document.querySelectorAll('[data-modal-option]');
+        
+        try {
+            const resp = await fetch('/api/modal-options/');
+            const data = await resp.json();
+            
+            selects.forEach(select => {
+                const key = select.getAttribute('data-modal-option');
+                const options = data[key] || [];
+                let html = '<option value="">Selecione...</option>';
+                const selectedVal = select.getAttribute('data-selected-value');
+                
+                options.forEach(opt => {
+                    const isSelected = selectedVal && selectedVal == opt.id ? 'selected' : '';
+                    html += `<option value="${opt.id}" ${isSelected}>${opt.name}</option>`;
+                });
+                select.innerHTML = html;
+            });
+            modalOptionsLoaded = true;
+        } catch (e) {
+            selects.forEach(s => s.innerHTML = '<option value="">Erro ao carregar</option>');
+        }
+    }
+
     function openModal(id) {
+        if (id === 'modal-edit-book' || id === 'modal-edit-reading') {
+            loadModalOptions();
+        }
         document.getElementById(id).style.display = 'flex';
     }
     function closeModal(id) {
