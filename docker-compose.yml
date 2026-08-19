@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build: .
+    container_name: booktrack-frontend
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      - API_BASE_URL=http://booktrack-api:8000
+    networks:
+      - booktrack-network
+    restart: unless-stopped
+
+networks:
+  booktrack-network:
+    external: true
+    name: booktrack-backend_default
