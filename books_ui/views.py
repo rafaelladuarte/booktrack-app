@@ -1,5 +1,6 @@
 import httpx
 import json
+from .api_client import api_request
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
@@ -27,6 +28,7 @@ def login_view(request):
             if response.status_code == 200:
                 token_data = response.json()
                 request.session['access_token'] = token_data.get('access_token')
+                request.session['refresh_token'] = token_data.get('refresh_token')
                 return redirect('library')
             else:
                 error = "E-mail ou senha incorretos."
@@ -55,27 +57,27 @@ def library_view(request):
     formats = []
     shelves = []
     try:
-        cat_resp = httpx.get(f"{API_URL}/categories", headers=headers)
+        cat_resp = api_request(request, 'GET', f"/categories")
         if cat_resp.status_code == 200:
             categories = cat_resp.json().get('data', [])
 
-        tag_resp = httpx.get(f"{API_URL}/tags", headers=headers)
+        tag_resp = api_request(request, 'GET', f"/tags")
         if tag_resp.status_code == 200:
             tags = sorted(tag_resp.json().get('data', []), key=lambda x: x['name'])
 
-        status_resp = httpx.get(f"{API_URL}/reading_status", headers=headers)
+        status_resp = api_request(request, 'GET', f"/reading_status")
         if status_resp.status_code == 200:
             statuses = sorted(status_resp.json().get('data', []), key=lambda x: x['name'])
 
-        format_resp = httpx.get(f"{API_URL}/formats", headers=headers)
+        format_resp = api_request(request, 'GET', f"/formats")
         if format_resp.status_code == 200:
             formats = sorted(format_resp.json().get('data', []), key=lambda x: x['name'])
 
-        shelve_resp = httpx.get(f"{API_URL}/shelves", headers=headers)
+        shelve_resp = api_request(request, 'GET', f"/shelves")
         if shelve_resp.status_code == 200:
             shelves = sorted(shelve_resp.json().get('data', []), key=lambda x: x['name'])
 
-        country_resp = httpx.get(f"{API_URL}/authors/countries", headers=headers)
+        country_resp = api_request(request, 'GET', f"/authors/countries")
         if country_resp.status_code == 200:
             countries = country_resp.json().get('data', [])
         else:
@@ -163,9 +165,8 @@ def library_view(request):
         active_chips.append({'key': 'q', 'label': 'Busca', 'value': active_filters['q']})
 
     try:
-        response = httpx.get(f"{API_URL}/books", headers=headers, params=params)
+        response = api_request(request, 'GET', f"/books", params=params)
         if response.status_code == 401:
-            request.session.flush()
             return redirect('login')
         books = response.json().get('data', []) if response.status_code == 200 else []
     except httpx.RequestError:
@@ -175,10 +176,10 @@ def library_view(request):
     options = {}
     try:
         options['categories'] = sorted(categories, key=lambda x: x['name'])
-        options['authors'] = sorted(httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['formats'] = sorted(httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['publishers'] = sorted(httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['collections'] = sorted(httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['authors'] = sorted(api_request(request, 'GET', f"/authors").json().get('data', []), key=lambda x: x['name'])
+        options['formats'] = sorted(api_request(request, 'GET', f"/formats").json().get('data', []), key=lambda x: x['name'])
+        options['publishers'] = sorted(api_request(request, 'GET', f"/publishers").json().get('data', []), key=lambda x: x['name'])
+        options['collections'] = sorted(api_request(request, 'GET', f"/collections").json().get('data', []), key=lambda x: x['name'])
     except Exception:
         pass
 
@@ -186,14 +187,14 @@ def library_view(request):
     try:
         lendo_id = next((s['id'] for s in statuses if s['name'].lower() == 'lendo'), None)
         if lendo_id:
-            resp = httpx.get(f"{API_URL}/books?status_id={lendo_id}", headers=headers)
+            resp = api_request(request, 'GET', f"/books?status_id={lendo_id}")
             if resp.status_code == 200:
                 lendo_books = resp.json().get('data', [])
                 if lendo_books:
                     book_stub = lendo_books[0]
                     
                     # O endpoint de listagem não devolve readings, busca os dados completos via detalhe
-                    detail_resp = httpx.get(f"{API_URL}/books/{book_stub['id']}", headers=headers)
+                    detail_resp = api_request(request, 'GET', f"/books/{book_stub['id']}")
                     if detail_resp.status_code == 200:
                         detail_data = detail_resp.json().get('data', [])
                         reading_now = detail_data[0] if detail_data else book_stub
@@ -222,7 +223,7 @@ def library_view(request):
                         reading_now['read_percentage'] = percentage
                         reading_now['pages_read'] = pages_read
 
-                    quotes_resp = httpx.get(f"{API_URL}/quotes?book_id={reading_now['id']}", headers=headers)
+                    quotes_resp = api_request(request, 'GET', f"/quotes?book_id={reading_now['id']}")
                     if quotes_resp.status_code == 200:
                         quotes = quotes_resp.json().get('data', [])
                         if quotes:
@@ -251,9 +252,8 @@ def book_detail_view(request, book_id):
         return redirect('login')
         
     try:
-        response = httpx.get(f"{API_URL}/books/{book_id}", headers=get_headers(request))
+        response = api_request(request, 'GET', f"/books/{book_id}", headers=get_headers(request))
         if response.status_code == 401:
-            request.session.flush()
             return redirect('login')
             
         data_list = response.json().get('data', []) if response.status_code == 200 else []
@@ -269,7 +269,7 @@ def book_detail_view(request, book_id):
     if book and book.get('collection'):
         try:
             col_id = book['collection']['id']
-            col_resp = httpx.get(f"{API_URL}/books?collection_id={col_id}", headers=get_headers(request))
+            col_resp = api_request(request, 'GET', f"/books?collection_id={col_id}", headers=get_headers(request))
             if col_resp.status_code == 200:
                 raw_col_books = col_resp.json().get('data', [])
                 collection_books = [b for b in raw_col_books if str(b['id']) != str(book_id)]
@@ -282,13 +282,13 @@ def book_detail_view(request, book_id):
     options = {}
     headers = get_headers(request)
     try:
-        options['categories'] = sorted(httpx.get(f"{API_URL}/categories", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['authors'] = sorted(httpx.get(f"{API_URL}/authors", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['formats'] = sorted(httpx.get(f"{API_URL}/formats", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['publishers'] = sorted(httpx.get(f"{API_URL}/publishers", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['collections'] = sorted(httpx.get(f"{API_URL}/collections", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['statuses'] = sorted(httpx.get(f"{API_URL}/reading_status", headers=headers).json().get('data', []), key=lambda x: x['name'])
-        options['tags'] = sorted(httpx.get(f"{API_URL}/tags", headers=headers).json().get('data', []), key=lambda x: x['name'])
+        options['categories'] = sorted(api_request(request, 'GET', f"/categories").json().get('data', []), key=lambda x: x['name'])
+        options['authors'] = sorted(api_request(request, 'GET', f"/authors").json().get('data', []), key=lambda x: x['name'])
+        options['formats'] = sorted(api_request(request, 'GET', f"/formats").json().get('data', []), key=lambda x: x['name'])
+        options['publishers'] = sorted(api_request(request, 'GET', f"/publishers").json().get('data', []), key=lambda x: x['name'])
+        options['collections'] = sorted(api_request(request, 'GET', f"/collections").json().get('data', []), key=lambda x: x['name'])
+        options['statuses'] = sorted(api_request(request, 'GET', f"/reading_status").json().get('data', []), key=lambda x: x['name'])
+        options['tags'] = sorted(api_request(request, 'GET', f"/tags").json().get('data', []), key=lambda x: x['name'])
     except Exception:
         pass
         
@@ -309,7 +309,7 @@ def edit_book_view(request, book_id):
                     data[field] = val
                     
         try:
-            resp = httpx.put(f"{API_URL}/books/{book_id}", json=data, headers=headers)
+            resp = api_request(request, 'PUT', f"/books/{book_id}", json=data)
             if resp.status_code == 200:
                 messages.success(request, "Livro atualizado com sucesso!")
             else:
@@ -338,7 +338,7 @@ def edit_reading_view(request, book_id):
             data['tag_ids'] = [int(tid) for tid in tag_ids]
             
         try:
-            resp = httpx.put(f"{API_URL}/readings/{book_id}", json=data, headers=headers)
+            resp = api_request(request, 'PUT', f"/readings/{book_id}", json=data)
             
             if resp.status_code == 404:
                 # Se a leitura não existir (404), vamos criá-la
@@ -349,12 +349,12 @@ def edit_reading_view(request, book_id):
                 if 'tag_ids' in create_data:
                     del create_data['tag_ids']
                     
-                post_resp = httpx.post(f"{API_URL}/readings", json=create_data, headers=headers)
+                post_resp = api_request(request, 'POST', f"/readings", json=create_data)
                 
                 if post_resp.status_code in [200, 201]:
                     if tag_ids:
                         # Se criou com sucesso, fazemos um PUT apenas para setar as tags
-                        httpx.put(f"{API_URL}/readings/{book_id}", json={'tag_ids': data['tag_ids']}, headers=headers)
+                        api_request(request, 'PUT', f"/readings/{book_id}", json={'tag_ids': data['tag_ids']})
                     messages.success(request, "Leitura criada e atualizada com sucesso!")
                 else:
                     messages.error(request, f"Erro ao criar leitura: {post_resp.text}")
@@ -382,7 +382,7 @@ def create_book_view(request):
                     data[field] = val
                     
         try:
-            resp = httpx.post(f"{API_URL}/books", json=data, headers=headers)
+            resp = api_request(request, 'POST', f"/books", json=data)
             if resp.status_code in [200, 201]:
                 messages.success(request, "Livro adicionado com sucesso!")
             elif resp.status_code == 403:
@@ -398,7 +398,7 @@ def delete_book_view(request, book_id):
     if request.method == 'POST':
         headers = get_headers(request)
         try:
-            resp = httpx.delete(f"{API_URL}/books/{book_id}", headers=headers)
+            resp = api_request(request, 'DELETE', f"/books/{book_id}")
             if resp.status_code == 200:
                 messages.success(request, "Livro excluído com sucesso!")
             elif resp.status_code == 403:
@@ -424,7 +424,7 @@ def create_entity_ajax_view(request, entity_type):
             
         try:
             data = json.loads(request.body)
-            resp = httpx.post(f"{API_URL}/{entity_type}", json=data, headers=headers)
+            resp = api_request(request, 'POST', f"/{entity_type}", json=data)
             
             if resp.status_code in [200, 201]:
                 return JsonResponse(resp.json())
@@ -438,7 +438,7 @@ def create_entity_ajax_view(request, entity_type):
 def categories_view(request):
     headers = get_headers(request)
     try:
-        resp = httpx.get(f"{API_URL}/categories", headers=headers)
+        resp = api_request(request, 'GET', f"/categories")
         categories = resp.json().get('data', []) if resp.status_code == 200 else []
     except Exception:
         categories = []
@@ -467,12 +467,12 @@ def manage_category_ajax_view(request, category_id=None):
     try:
         if request.method == 'POST':
             data = json.loads(request.body)
-            resp = httpx.post(f"{API_URL}/categories", json=data, headers=headers)
+            resp = api_request(request, 'POST', f"/categories", json=data)
         elif request.method == 'PUT' and category_id:
             data = json.loads(request.body)
-            resp = httpx.put(f"{API_URL}/categories/{category_id}", json=data, headers=headers)
+            resp = api_request(request, 'PUT', f"/categories/{category_id}", json=data)
         elif request.method == 'DELETE' and category_id:
-            resp = httpx.delete(f"{API_URL}/categories/{category_id}", headers=headers)
+            resp = api_request(request, 'DELETE', f"/categories/{category_id}")
         else:
             return JsonResponse({'error': 'Método não permitido'}, status=405)
             
@@ -507,7 +507,7 @@ def delete_quote_ajax_view(request, quote_id):
     """Proxy AJAX: deleta citação via API FastAPI."""
     headers = get_headers(request)
     try:
-        resp = httpx.delete(f"{API_URL}/quotes/{quote_id}", headers=headers)
+        resp = api_request(request, 'DELETE', f"/quotes/{quote_id}")
         if resp.status_code == 204:
             return JsonResponse({'ok': True})
         return JsonResponse({'error': resp.text}, status=resp.status_code)

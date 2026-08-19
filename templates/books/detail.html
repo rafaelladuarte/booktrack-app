@@ -580,6 +580,8 @@
             if (status === 201) {
                 closeModal('modal-add-quote');
                 _appendQuoteCard(readingId, data);
+            } else if (status === 401) {
+                window.location.href = '/login/';
             } else {
                 alert('Erro ao salvar citação: ' + (data.error || 'Tente novamente.'));
             }
@@ -622,7 +624,13 @@
             method: 'POST',
             headers: { 'X-CSRFToken': getCookie('csrftoken') }
         })
-        .then(r => r.json())
+        .then(r => {
+            if (r.status === 401) {
+                window.location.href = '/login/';
+                return Promise.reject('Unauthorized');
+            }
+            return r.json();
+        })
         .then(data => {
             if (data.ok) {
                 const card = document.getElementById(`quote-${quoteId}`);

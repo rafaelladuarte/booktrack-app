@@ -243,6 +243,8 @@
                     });
                 }
                 closeModal('modal-create-entity');
+            } else if (res.status === 401) {
+                window.location.href = '/login/';
             } else {
                 const oldError = document.getElementById('create-entity-error');
                 if (oldError) oldError.remove();

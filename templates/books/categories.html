@@ -216,6 +216,8 @@
             
             if (response.ok) {
                 window.location.reload(); // simple reload to see changes
+            } else if (response.status === 401) {
+                window.location.href = '/login/';
             } else {
                 alert(`Erro: ${data.error || 'Falha ao salvar'}`);
             }
@@ -237,6 +239,8 @@
             
             if (response.ok) {
                 window.location.reload();
+            } else if (response.status === 401) {
+                window.location.href = '/login/';
             } else {
                 const data = await response.json();
                 alert(`Erro: ${data.error || 'Falha ao excluir'}`);
