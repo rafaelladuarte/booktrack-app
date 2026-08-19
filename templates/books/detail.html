@@ -465,20 +465,24 @@
             {% with active_reading=book.readings|first %}
             <div class="form-group">
                 <label>Status</label>
-                <select name="status_id" required>
+                <select name="status_id" id="edit-reading-status" required>
                     <option value="">Selecione...</option>
                     {% for s in options.statuses %}
-                    <option value="{{ s.id }}" {% if active_reading and active_reading.status.id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    <option value="{{ s.id }}" data-name="{{ s.name|lower }}" {% if active_reading and active_reading.status.id == s.id %}selected{% endif %}>{{ s.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Páginas Lidas</label>
-                <input type="number" name="pages_read" value="{{ active_reading.pages_read|default:'' }}">
+                <input type="number" name="pages_read" id="edit-reading-pages" value="{{ active_reading.pages_read|default:'' }}">
             </div>
             <div class="form-group">
                 <label>Data de Início</label>
-                <input type="date" name="start_date" value="{% if active_reading and active_reading.start_date %}{{ active_reading.start_date }}{% endif %}">
+                <input type="date" name="start_date" value="{% if active_reading and active_reading.start_date %}{{ active_reading.start_date|date:'Y-m-d' }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Data de Término</label>
+                <input type="date" name="end_date" value="{% if active_reading and active_reading.end_date %}{{ active_reading.end_date|date:'Y-m-d' }}{% endif %}">
             </div>
             <div class="form-group">
                 <label>Avaliação</label>
@@ -681,4 +685,23 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const statusSelect = document.getElementById('edit-reading-status');
+        const pagesInput = document.getElementById('edit-reading-pages');
+        
+        if (statusSelect && pagesInput) {
+            statusSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const statusName = selectedOption.getAttribute('data-name');
+                const totalPages = parseInt("{{ book.total_pages|default:'0' }}", 10);
+                
+                if (statusName === 'lido' && totalPages > 0) {
+                    pagesInput.value = totalPages;
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

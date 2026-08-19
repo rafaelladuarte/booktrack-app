@@ -323,7 +323,7 @@ def edit_reading_view(request, book_id):
     if request.method == 'POST':
         headers = get_headers(request)
         data = {}
-        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'club_date', 'review', 'rating']
+        fields = ['status_id', 'pages_read', 'personal_goal', 'club_name', 'start_date', 'end_date', 'club_date', 'review', 'rating']
         for field in fields:
             val = request.POST.get(field)
             if val:
