@@ -6,8 +6,8 @@ services:
       - "8080:8080"
     volumes:
       - .:/app
-    environment:
-      - API_BASE_URL=http://booktrack-api:8000
+    env_file:
+      - .env
     networks:
       - booktrack-network
     restart: unless-stopped
