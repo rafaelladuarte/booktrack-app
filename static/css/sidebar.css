@@ -1,0 +1,239 @@
+/* ============================================================
+   SIDEBAR 
+   ============================================================ */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-width-collapsed);
+  overflow: hidden;
+  z-index: 50;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  box-sizing: border-box;
+  transition: width var(--transition), background var(--transition);
+  user-select: none;
+}
+
+.sidebar:hover,
+.sidebar.pinned {
+  width: var(--sidebar-width-expanded);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 28px 20px;
+  text-decoration: none;
+  color: var(--sidebar-active-text);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-logo-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sidebar-logo-text {
+  opacity: 0;
+  max-width: 0;
+  transition: opacity 0.20s ease 0.05s, max-width 0.20s ease;
+}
+
+.sidebar:hover .sidebar-logo-text, 
+.sidebar.pinned .sidebar-logo-text {
+  opacity: 1;
+  max-width: 160px;
+}
+
+.sidebar-pin-btn {
+  background: transparent;
+  border: none;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.sidebar:hover .sidebar-pin-btn, 
+.sidebar.pinned .sidebar-pin-btn {
+  opacity: 1;
+}
+
+.sidebar-pin-btn:hover {
+  color: var(--sidebar-active-text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar.pinned .sidebar-pin-btn {
+  color: var(--accent);
+}
+
+.sidebar-section {
+  display: block;
+  padding: 0 0 6px 20px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--sidebar-section);
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.sidebar:hover .sidebar-section,
+.sidebar.pinned .sidebar-section {
+  opacity: 1;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.sidebar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  color: var(--sidebar-text);
+  font-size: 0.83rem;
+  font-weight: 700;
+  transition: background var(--transition), color var(--transition);
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--sidebar-text-hover);
+}
+
+.sidebar-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 0 2px 2px 0;
+  background: var(--sidebar-active-bar);
+}
+
+.sidebar-icon-wrap {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.sidebar-icon-wrap svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-label {
+  opacity: 0;
+  transform: translateX(-6px);
+  max-width: 0;
+  transition: opacity 0.20s ease 0.05s, transform 0.20s ease 0.05s, max-width 0.20s ease;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.sidebar:hover .sidebar-label,
+.sidebar.pinned .sidebar-label {
+  opacity: 1;
+  transform: translateX(0);
+  max-width: 160px;
+}
+
+/* Main Workspace */
+.sidebar.pinned + .main-wrapper {
+  margin-left: var(--sidebar-width-expanded);
+}
+
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+  margin-left: 64px;
+  transition: margin-left var(--transition);
+}
+
+/* Header Navbar */
+.app-header {
+  height: 70px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-primary);
+}
+
+.search-box {
+  position: relative;
+  width: 340px;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 42px;
+  border-radius: var(--radius-xl);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}

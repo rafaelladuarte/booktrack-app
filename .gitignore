@@ -23,7 +23,6 @@ media/
 
 # Django static files
 staticfiles/
-static/
 
 # Testing / coverage
 .pytest_cache/
