@@ -123,6 +123,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Sessions — usar cookies assinados para não depender de banco de dados
+# O frontend só armazena tokens JWT (access_token, refresh_token) na sessão
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # URL da API Backend
