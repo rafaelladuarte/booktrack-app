@@ -14,6 +14,9 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
+# Coleta os arquivos estáticos
+RUN python manage.py collectstatic --noinput
+
 EXPOSE 8080
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+CMD ["sh", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"]
