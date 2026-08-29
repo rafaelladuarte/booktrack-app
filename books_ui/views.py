@@ -465,6 +465,23 @@ def manage_category_ajax_view(request, category_id=None):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def list_quotes_ajax_view(request, reading_id):
+    """Proxy AJAX: lista citações via API FastAPI."""
+    limit = request.GET.get('limit', 10)
+    offset = request.GET.get('offset', 0)
+    headers = get_headers(request)
+    try:
+        resp = httpx.get(
+            f"{API_URL}/quotes/{reading_id}?limit={limit}&offset={offset}",
+            headers=headers
+        )
+        if resp.status_code == 200:
+            return JsonResponse(resp.json(), status=200)
+        return JsonResponse({'error': resp.text}, status=resp.status_code)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 @require_POST
 def create_quote_ajax_view(request, reading_id):
     """Proxy AJAX: cria citação via API FastAPI."""

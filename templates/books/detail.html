@@ -147,58 +147,107 @@
     color: #ffc107;
 }
 
-/* Seção de Citações */
-.quotes-section { margin-top: 24px; }
-.quotes-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-.quote-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    position: relative;
-    transition: background 0.2s;
+/* Seção Histórico e Citações (Redesign) */
+.reading-entry {
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
 }
-.quote-card:hover { background: var(--bg-card-hover); }
-.quote-content {
-    font-style: italic;
-    color: var(--text-primary);
-    line-height: 1.6;
-    font-size: 0.95rem;
-    margin: 0 0 6px 0;
+.reading-entry:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
-.quote-page {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.reading-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
 }
-.btn-delete-quote {
-    position: absolute;
-    top: 10px; right: 10px;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: var(--radius-sm);
-    transition: color 0.2s, background 0.2s;
-    display: flex; align-items: center;
-}
-.btn-delete-quote:hover { color: #ff4d4d; background: rgba(255,77,77,0.1); }
-.btn-add-quote {
+.reading-status-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: transparent;
-    border: 1px dashed var(--border);
-    color: var(--text-secondary);
-    padding: 8px 16px;
-    border-radius: var(--radius-xl);
-    font-size: 0.85rem;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: all 0.2s;
+    font-weight: 600;
+    color: var(--text-primary);
 }
-.btn-add-quote:hover { border-color: var(--accent); color: var(--accent-text); }
+.reading-status-badge svg { color: var(--accent); }
+.reading-dates {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-left: 12px;
+}
+.reading-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+.btn-text-subtle {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 0.85rem; cursor: pointer; padding: 0; transition: color 0.2s;
+}
+.btn-text-subtle:hover { color: var(--accent); }
+.reading-meta-inline {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+.review-container {
+    margin-bottom: 24px;
+}
+.review-text {
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.review-text.expanded {
+    -webkit-line-clamp: unset;
+}
+.btn-show-more {
+    background: none; border: none; color: var(--accent);
+    font-size: 0.85rem; cursor: pointer; padding: 0; margin-top: 8px; font-weight: 600;
+}
+.btn-show-more:hover { text-decoration: underline; }
+
+.quotes-section { margin-top: 32px; }
+.quotes-header {
+    font-size: 0.8rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.quotes-list { display: flex; flex-direction: column; gap: 24px; }
+.quote-item {
+    display: flex; flex-direction: column; gap: 8px; position: relative;
+    padding-right: 24px; /* Espaço para o botão de deletar */
+}
+.quote-content {
+    font-style: italic; color: var(--text-primary); line-height: 1.5; font-size: 0.95rem; margin: 0;
+}
+.quote-meta {
+    font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;
+}
+.btn-delete-quote {
+    position: absolute; right: 0; top: 0;
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; padding: 4px; border-radius: var(--radius-sm);
+    opacity: 0.5; transition: all 0.2s;
+}
+.quote-item:hover .btn-delete-quote { opacity: 1; }
+.btn-delete-quote:hover { color: #ff4d4d; background: rgba(255,77,77,0.1); }
+
+.btn-add-quote {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; border: none; color: var(--text-secondary);
+    padding: 0; font-size: 0.85rem; cursor: pointer; margin-top: 20px; transition: color 0.2s; font-weight: 500;
+}
+.btn-add-quote:hover { color: var(--accent); }
 </style>
 
 <div class="section-header">
@@ -236,9 +285,8 @@
             {% if book.publisher %}
             <div class="meta-badge">Editora: {{ book.publisher.name }}</div>
             {% endif %}
-            {% if book.format %}
-            <div class="meta-badge">Formato: {{ book.format.name }}</div>
-            {% endif %}
+
+
             {% if book.collection %}
             <div class="meta-badge">Coleção: {{ book.collection.name }}</div>
             {% endif %}
@@ -255,18 +303,32 @@
         {% endif %}
         
         <!-- Histórico de Leituras -->
-        <div style="margin-top: 30px;">
-            <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                 <h3 style="margin: 0;">Histórico de Leitura</h3>
-                <button class="btn-edit" style="display: inline-flex; align-items: center; gap: 6px;" onclick="openModal('modal-edit-reading')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Atualizar Leitura</button>
+                <button class="btn-edit" style="display: inline-flex; align-items: center; gap: 6px;" onclick="openModal('modal-edit-reading')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg> 
+                    Registrar Leitura
+                </button>
             </div>
             {% if book.readings and book.readings|length > 0 %}
-                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+                <div style="display: flex; flex-direction: column; margin-top: 15px;">
                 {% for reading in book.readings %}
-                    <div style="border: 1px solid var(--border); padding: 15px; border-radius: var(--radius-lg); background-color: var(--bg-card);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <strong>Status: {{ reading.status.name|default:"Desconhecido" }}</strong>
+                    <div class="reading-entry">
+                        <!-- Cabeçalho: Status, Datas, Avaliação, Ações -->
+                        <div class="reading-header">
+                            <div>
+                                <span class="reading-status-badge">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    {{ reading.status.name|default:"Desconhecido" }}
+                                </span>
+                                {% if reading.start_date or reading.end_date %}
+                                    <span class="reading-dates">
+                                        {{ reading.start_date|default:"?" }} — {{ reading.end_date|default:"?" }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="reading-actions">
                                 {% if reading.rating %}
                                 <span style="color: #ffc107; display: inline-flex; align-items: center; gap: 4px; font-weight: bold; font-size: 0.9em;">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -274,76 +336,44 @@
                                 </span>
                                 {% endif %}
                             </div>
-                            {% if reading.start_date or reading.end_date %}
-                                <span style="font-size: 0.9em; color: var(--text-secondary);">
-                                    {{ reading.start_date|default:"?" }} a {{ reading.end_date|default:"?" }}
-                                </span>
-                            {% endif %}
                         </div>
-                        
+
+                        <!-- Metadados Inline: Páginas -->
                         {% if reading.pages_read %}
-                        <div style="margin-bottom: 10px; font-size: 0.95em;">
-                            Páginas lidas: {{ reading.pages_read }}
+                        <div class="reading-meta-inline">
+                            {{ reading.pages_read }} páginas lidas
                         </div>
                         {% endif %}
-                        
+
+                        <!-- Resenha -->
                         {% if reading.review %}
-                        <div style="margin-top: 10px; margin-bottom: 15px; padding: 12px; background: var(--background-dark); border-radius: var(--radius-md); border-left: 4px solid var(--accent);">
-                            <strong>Resenha:</strong>
-                            <p style="margin: 8px 0 0 0; color: var(--text-secondary); font-size: 0.95em; white-space: pre-wrap; line-height: 1.5;">{{ reading.review }}</p>
+                        <div class="review-container">
+                            <h4 style="font-size: 0.9rem; color: var(--text-primary); margin: 0 0 8px 0;">Resenha</h4>
+                            <p class="review-text" id="review-{{ reading.id }}">{{ reading.review }}</p>
+                            <button class="btn-show-more" onclick="toggleReview('review-{{ reading.id }}', this)">Mostrar mais</button>
                         </div>
                         {% endif %}
 
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 5px;">
-                            {% for tag in reading.tags %}
-                                <span style="background-color: var(--primary-color); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold;">
-                                    #{{ tag }}
-                                </span>
-                            {% endfor %}
-                            
-                            {% for shelf in reading.shelves %}
-                                <span style="background-color: var(--text-secondary); color: var(--background-dark); padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg> {{ shelf }}
-                                </span>
-                            {% endfor %}
-                        </div>
-
-                        <!-- Seção de Citações da Leitura -->
+                        <!-- Citações & Notas -->
                         <div class="quotes-section" data-reading-id="{{ reading.id }}">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                                <h4 style="margin:0; font-size:0.9rem; color:var(--text-secondary);">
-                                    Citações &amp; Notas
-                                    <span class="quotes-count"
-                                          style="background:var(--bg-secondary);border-radius:10px;padding:1px 8px;font-size:0.8rem;margin-left:6px;">
-                                        {{ reading.quotes|length }}
-                                    </span>
-                                </h4>
+                            <div class="quotes-header">
+                                Citações & Notas <span class="quotes-count" style="margin-left:auto; background:var(--background-dark); padding:2px 8px; border-radius:12px; color:var(--text-primary);">{{ reading.quotes_count|default:"0" }}</span>
                             </div>
 
                             <div class="quotes-list" id="quotes-list-{{ reading.id }}">
-                                {% for quote in reading.quotes %}
-                                <div class="quote-card" id="quote-{{ quote.id }}">
-                                    <p class="quote-content">"{{ quote.content }}"</p>
-                                    {% if quote.page_number %}
-                                    <span class="quote-page">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                                        p. {{ quote.page_number }}
-                                    </span>
-                                    {% endif %}
-                                    <button class="btn-delete-quote" onclick="deleteQuote({{ quote.id }}, {{ reading.id }})" title="Remover citação">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                    </button>
-                                </div>
-                                {% empty %}
-                                <p id="empty-quotes-{{ reading.id }}" style="color:var(--text-muted);font-size:0.85rem;font-style:italic;">
-                                    Nenhuma citação registrada ainda.
-                                </p>
-                                {% endfor %}
+                                <!-- O Javascript se encarregará de fazer fetch imediato das citações -->
                             </div>
 
+                            {% if reading.quotes_count > 3 %}
+                            <div style="text-align: center; margin-top: 16px;">
+                                <button class="btn-text-subtle" id="btn-load-more-{{ reading.id }}" onclick="loadMoreQuotes({{ reading.id }})" style="font-weight: 500;">
+                                    Carregar mais citações...
+                                </button>
+                            </div>
+                            {% endif %}
+
                             <button class="btn-add-quote" onclick="openAddQuoteModal({{ reading.id }})">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                Nova Citação
+                                + Nova citação
                             </button>
                         </div>
                     </div>
@@ -603,33 +633,34 @@
         .catch(() => alert('Erro de comunicação com o servidor.'));
     }
 
-    function _appendQuoteCard(readingId, quote) {
+    function _appendQuoteCard(readingId, quote, updateCount = true) {
         const list = document.getElementById(`quotes-list-${readingId}`);
         // Remove mensagem "Nenhuma citação"
         const empty = document.getElementById(`empty-quotes-${readingId}`);
         if (empty) empty.remove();
 
         const div = document.createElement('div');
-        div.className = 'quote-card';
+        div.className = 'quote-item';
         div.id = `quote-${quote.id}`;
         div.innerHTML = `
             <p class="quote-content">"${quote.content}"</p>
-            ${quote.page_number ? '<span class="quote-page">p. ' + quote.page_number + '</span>' : ''}
-            <button class="btn-delete-quote"
-                    onclick="deleteQuote(${quote.id}, ${readingId})"
-                    title="Remover citação">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                </svg>
+            <div class="quote-meta">
+                ${quote.page_number ? '<span>p. ' + quote.page_number + '</span>' : '<span></span>'}
+            </div>
+            <button class="btn-delete-quote" onclick="deleteQuote(${quote.id}, ${readingId})" title="Remover citação">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
             </button>
         `;
         list.appendChild(div);
 
         // Atualiza contador
-        const counter = document.querySelector(`[data-reading-id="${readingId}"] .quotes-count`);
-        if (counter) counter.textContent = list.querySelectorAll('.quote-card').length;
+        if (updateCount) {
+            const counter = document.querySelector(`[data-reading-id="${readingId}"] .quotes-count`);
+            if (counter) {
+                let current = parseInt(counter.textContent) || 0;
+                counter.textContent = current + 1;
+            }
+        }
     }
 
     function deleteQuote(quoteId, readingId) {
@@ -651,17 +682,21 @@
                 if (card) card.remove();
 
                 const list = document.getElementById(`quotes-list-${readingId}`);
-                const remaining = list ? list.querySelectorAll('.quote-card').length : 0;
-
-                // Atualiza contador
+                
+                // Atualiza contador decrementando
                 const counter = document.querySelector(`[data-reading-id="${readingId}"] .quotes-count`);
-                if (counter) counter.textContent = remaining;
+                let remaining = 0;
+                if (counter) {
+                    let current = parseInt(counter.textContent) || 0;
+                    remaining = Math.max(0, current - 1);
+                    counter.textContent = remaining;
+                }
 
                 // Mostra mensagem de vazio se necessário
                 if (remaining === 0) {
                     const p = document.createElement('p');
                     p.id = `empty-quotes-${readingId}`;
-                    p.style = 'color:var(--text-muted);font-size:0.85rem;font-style:italic;';
+                    p.style = 'color:var(--text-muted);font-size:0.85rem;font-style:italic;margin:0;';
                     p.textContent = 'Nenhuma citação registrada ainda.';
                     list.appendChild(p);
                 }
@@ -677,6 +712,96 @@
             const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
             return v ? v[2] : null;
         }
+    }
+
+    function toggleReview(id, btn) {
+        const p = document.getElementById(id);
+        if (p.classList.contains('expanded')) {
+            p.classList.remove('expanded');
+            btn.textContent = 'Mostrar mais';
+        } else {
+            p.classList.add('expanded');
+            btn.textContent = 'Mostrar menos';
+        }
+    }
+    
+    // Auto-hide show more button se o texto couber nas linhas
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.review-text').forEach(p => {
+            if (p.scrollHeight <= p.clientHeight) {
+                const btn = p.nextElementSibling;
+                if (btn && btn.classList.contains('btn-show-more')) {
+                    btn.style.display = 'none';
+                }
+            }
+        });
+        
+        // Dispara fetch da primeira página de citações (limit=3, offset=0) para cada reading
+        {% if book.readings %}
+            {% for r in book.readings %}
+                loadMoreQuotes({{ r.id }}, true);
+            {% endfor %}
+        {% endif %}
+    });
+    
+    const quoteOffsets = {};
+    const quoteCounts = {
+        {% if book.readings %}
+            {% for r in book.readings %}
+                '{{ r.id }}': {{ r.quotes_count|default:"0" }},
+            {% endfor %}
+        {% endif %}
+    };
+    
+    function loadMoreQuotes(readingId, initialLoad = false) {
+        if (!quoteOffsets[readingId]) {
+            quoteOffsets[readingId] = 0;
+        }
+        
+        const offset = quoteOffsets[readingId];
+        const limit = initialLoad ? 3 : 10;
+        
+        const btn = document.getElementById(`btn-load-more-${readingId}`);
+        if (btn && !initialLoad) btn.textContent = 'Carregando...';
+        
+        fetch(`/api/quotes/${readingId}/list/?offset=${offset}&limit=${limit}`)
+            .then(r => r.json().then(data => ({ status: r.status, data })))
+            .then(({ status, data }) => {
+                if (status === 200) {
+                    const quotes = data.data || [];
+                    
+                    if (quotes.length === 0 && initialLoad) {
+                        const list = document.getElementById(`quotes-list-${readingId}`);
+                        list.innerHTML = `<p id="empty-quotes-${readingId}" style="color:var(--text-muted);font-size:0.85rem;font-style:italic; margin:0;">Nenhuma citação registrada ainda.</p>`;
+                    } else {
+                        quotes.forEach(quote => {
+                            _appendQuoteCard(readingId, quote, false);
+                        });
+                    }
+                    
+                    quoteOffsets[readingId] += quotes.length;
+                    
+                    const readingQuotesCount = quoteCounts[readingId] || 0;
+                    
+                    if (btn) {
+                        if (quotes.length < limit || quoteOffsets[readingId] >= readingQuotesCount) {
+                            btn.style.display = 'none';
+                        } else {
+                            btn.textContent = 'Carregar mais citações...';
+                            btn.style.display = 'inline-block';
+                        }
+                    }
+                } else if (status === 401) {
+                    window.location.href = '/login/';
+                } else {
+                    if (!initialLoad) alert('Erro ao carregar citações: ' + (data.error || ''));
+                    if (btn) btn.textContent = 'Carregar mais citações...';
+                }
+            })
+            .catch(() => {
+                if (!initialLoad) alert('Erro de comunicação com o servidor.');
+                if (btn) btn.textContent = 'Carregar mais citações...';
+            });
     }
 </script>
 
