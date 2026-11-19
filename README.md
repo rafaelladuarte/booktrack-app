@@ -69,7 +69,7 @@ sequenceDiagram
 ## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
-O [booktrack-backend](../booktrack-backend) deve estar rodando na porta `8080` (configurável via `.env`).
+A API [booktrack-fastapi](https://github.com/rafaelladuarte/booktrack-fastapi) deve estar rodando na porta `8080` (configurável via `.env`).
 
 ### Passo a Passo
 
